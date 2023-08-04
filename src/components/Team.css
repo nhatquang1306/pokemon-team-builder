@@ -1,0 +1,130 @@
+.team {
+    padding: 20px;
+    padding-bottom: 0;
+    display: grid;
+    grid-template-areas:
+        "taskbar taskbar"
+        "pokemons box"
+        ". box";
+    grid-template-columns: 904px 1fr;
+    gap: 20px;
+}
+.taskbar {
+    grid-area: taskbar;
+    display: flex;
+    gap: 20px;
+    align-items: center;
+}
+.taskbar > button {
+    cursor: pointer;
+}
+.taskbar > input {
+    cursor: default;
+    outline: none;
+}
+
+.team-pokemons {
+    display: flex;
+    flex-wrap: wrap;
+    grid-area: pokemons;
+    gap: 10px;
+}
+.box {
+    grid-area: box;    
+}
+
+.box {
+    display: flex;
+    flex-direction: column;
+    border-radius: 10px;
+    border: 1px solid rgb(111, 111, 111);
+    height: 837px;
+    box-shadow: 2px -2px 2px rgb(0, 0, 0, 0.7);
+    min-width: 700px;
+    background-color: rgb(135,206,250, 0.7);
+}
+.box-heading {
+    border-bottom: 1px solid rgb(111, 111, 111);
+    padding: 0 38px 0 30px;
+    border-radius: 10px 10px 0 0;
+}
+.box > .items > .item:nth-child(odd) {
+    background-color: rgba(194, 230, 253, 0.7)
+}
+.box > .items > .item:nth-child(even) {
+    background-color: rgba(150, 213, 252, 0.7)
+}
+.box > .items > .item:nth-child(odd).selected {
+    background-color: rgba(35, 35, 152, 0.7) !important;
+    color: white;
+}
+.box > .items > .item:nth-child(even).selected {
+    background-color: rgb(8, 8, 129, 0.7) !important;
+    color: white;
+}
+.box-heading, .box > .items > .item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.box-heading > p, .box > .items > .item > p {
+    width: 8%;
+}
+.box > .items {
+    overflow-y: auto;
+    height: 100%;
+    border-radius: 0 0 10px 10px;
+}
+.box > .items.scrollbar-present > .item {
+    padding: 0 30px;
+}
+
+.box > .items > .item {
+    padding: 0 38px 0 30px;
+    cursor: pointer;
+}
+.box > .items.scrollbar-present > .item {
+    padding: 0 30px;
+}
+.box > .items > .item:hover {
+    background-color: rgba(78, 78, 206, 0.7);
+    color: white;
+}
+
+.box > .items::-webkit-scrollbar {
+  width: 8px;
+  background-color: rgb(135,206,250, 0.7);
+  border-radius: 0 0 10px 0;
+}
+
+.box > .items::-webkit-scrollbar-thumb {
+  background-color: #6B6B6B;
+  border-radius: 4px;
+}
+.box > table {
+    border-collapse: collapse;
+    margin: 10px 20px;
+    width: calc(100% - 40px);
+    table-layout: fixed;
+}
+.box > table > tr > th, .box > table > tr > td {
+    text-align: center;
+    width: calc(18.75% - 25px);
+    padding: 8px 0;
+}
+.box > .nature {
+    display: flex;
+    gap: 15px;
+    margin: 20px;
+    position: relative;
+}
+.box > .nature > p {
+    position: absolute;
+    width: 120px;
+    margin: 0;
+    top: 0;
+    right: calc(28.125% - 97.5px);
+    font-style: italic;
+    text-align: center;
+    
+}
