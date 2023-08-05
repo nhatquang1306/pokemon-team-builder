@@ -694,7 +694,7 @@ class Pokemon extends React.Component {
     autocompleteMove(event) {
         if ((event.key === "Tab" || event.key === "Enter") && this.state.currentId !== null && this.state.highlightedMoves[this.state.currentMove] !== "") {
             event.preventDefault();
-            let highlightedMoves = this.state.highlightedMoves
+            let highlightedMoves = [...this.state.highlightedMoves]
             let move = this.state.moves.filter(m => m.name.toLowerCase().includes(highlightedMoves[this.state.currentMove].toLowerCase()))
             if (move.length === 1 && move[0] !== highlightedMoves[this.state.currentMove]) {
                 highlightedMoves[this.state.currentMove] = move[0].name

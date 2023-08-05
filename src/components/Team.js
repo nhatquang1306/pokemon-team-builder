@@ -267,7 +267,6 @@ class Team extends React.Component {
     componentDidUpdate(prevProps, prevState) {
         if ((this.state.currentPokemon !== prevState.currentPokemon || this.state.displaying !== prevState.displaying) && this.state.displaying !== "") {
             let width = document.querySelector(".team").clientWidth
-            console.log(width)
             if (width === 944) {
                 document.querySelector(".box").style.top = (73 + 10 * Math.floor(this.state.currentPokemon / 2) + 273 * Math.floor(this.state.currentPokemon / 2 + 1)) + "px"
             } else if (width < 944) {
