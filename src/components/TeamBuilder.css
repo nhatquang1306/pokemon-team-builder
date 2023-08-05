@@ -5,6 +5,9 @@
     flex-direction: column;
     gap: 20px;
 }
+.create-team {
+    width: 650px;
+}
 .create-team > .create {
     margin-right: 10px;
 }
@@ -16,10 +19,10 @@
     display: flex;
     flex-direction: column;
     gap: 20px;
+    width: 700px;
     overflow-y: auto;
+    overflow-x: hidden;
     max-height: calc(100vh - 82px);
-    width: 680px;
-    
 }
 .teams::-webkit-scrollbar {
     width: 8px;
@@ -87,4 +90,26 @@
     20%, 60% {
       transform: translate(-2px, 2px);
     }
-  }
+}
+@media screen and (max-width: 1000px) {
+    .team-builder {
+        align-items: center;
+    }
+    .teams {
+        width: auto;
+    }
+}
+@media screen and (max-width: 769px) {
+    .create-team {
+        width: calc(100vw - 50px);
+    }
+    .team-box {
+        width: calc(100vw - 50px);
+    }
+    .sprites {
+        height: 12vw
+    }
+    .sprites > img {
+        width: 12vw
+    }
+}

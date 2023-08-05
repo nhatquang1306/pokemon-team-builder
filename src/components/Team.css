@@ -1,11 +1,9 @@
 .team {
     padding: 20px;
-    padding-bottom: 0;
     display: grid;
     grid-template-areas:
         "taskbar taskbar"
-        "pokemons box"
-        ". box";
+        "pokemons box";
     grid-template-columns: 904px 1fr;
     gap: 20px;
 }
@@ -29,11 +27,9 @@
     grid-area: pokemons;
     gap: 10px;
 }
-.box {
-    grid-area: box;    
-}
 
 .box {
+    grid-area: box;    
     display: flex;
     flex-direction: column;
     border-radius: 10px;
@@ -42,6 +38,14 @@
     box-shadow: 2px -2px 2px rgb(0, 0, 0, 0.7);
     min-width: 700px;
     background-color: rgb(135,206,250, 0.7);
+    position: relative;
+}
+.box > .close-icon {
+    position: absolute;
+    right: 10px;
+    top: 5px;
+    cursor: pointer;
+
 }
 .box-heading {
     border-bottom: 1px solid rgb(111, 111, 111);
@@ -112,6 +116,9 @@
     width: calc(18.75% - 25px);
     padding: 8px 0;
 }
+.box > table > tr > td > .stat-input {
+    width: 45px;
+}
 .box > .nature {
     display: flex;
     gap: 15px;
@@ -127,4 +134,56 @@
     font-style: italic;
     text-align: center;
     
+}
+
+@media screen and (max-width: 1666px) {
+    .team {
+        display: flex;
+        flex-direction: column;
+        position: relative;
+        width: 904px;
+        margin: 0 auto;
+    }
+    .taskbar {
+        width: 100%;
+    }
+    .team-pokemons > .current-pokemon {
+        margin-bottom: calc(60vh + 12px);
+    }
+    .team-pokemons > .pokemon {
+        height: 231px;
+    }
+    .box {
+        position: absolute;
+        height: 60vh;
+        width: 904px;
+        left: 20px;
+    }
+}
+@media screen and (max-width: 943px) {
+    .team {
+        width: 447px;
+        margin: 0 auto;
+    }
+    .box {
+        font-size: 12px;
+        width: 445px;
+        min-width: unset;
+    }
+    .box > .box-heading {
+        padding: 0 15px 0 7px;
+    }
+    .box > .items.scrollbar-present > .item {
+        padding: 0 7px;
+    }    
+    .box > .items > .item {
+        padding: 0 15px 0 7px;
+        cursor: pointer;
+    }
+    .box > .items > .item > p > img {
+        width: 23px;
+    }
+    .box > table > tr > td > .stat-input {
+        width: 30px;
+    }
 }

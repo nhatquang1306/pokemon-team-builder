@@ -3,6 +3,7 @@ import Pokemon from './Pokemon.js';
 import './Team.css';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faAngleLeft } from '@fortawesome/free-solid-svg-icons';
+import { faTimes } from '@fortawesome/free-solid-svg-icons';
 
 const handleMinus = (event) => {
     if (['-', '+', 'e', 'E', '.'].includes(event.key)) {
@@ -165,7 +166,7 @@ class Team extends React.Component {
                     if (moveName === highlightedMoves[num]) {
                         moves[i].scrollIntoView({
                             behavior: "auto",
-                            block: "center"
+                            block: "nearest",
                         })
                         break;
                     }
@@ -233,7 +234,7 @@ class Team extends React.Component {
             if (scroll && changeItems.concat(heldItems).filter(item => item.name === heldItem).length > 0) {        
                 document.querySelector(".box > .items > .selected").scrollIntoView({
                     behavior: "auto",
-                    block: "center"
+                    block: "nearest"
                 })         
             }
         })
@@ -260,12 +261,22 @@ class Team extends React.Component {
             selectedStats: ["", "", "", "", "", ""]
         })
     }
-    closeDisplaying(index) {
-        this.setState({
-            displaying: "",
-            currentPokemon: index
-        })
+    closeDisplaying() {
+        this.setState({displaying: ""})
     }
+    componentDidUpdate(prevProps, prevState) {
+        if ((this.state.currentPokemon !== prevState.currentPokemon || this.state.displaying !== prevState.displaying) && this.state.displaying !== "") {
+            let width = document.querySelector(".team").clientWidth
+            console.log(width)
+            if (width === 944) {
+                document.querySelector(".box").style.top = (73 + 10 * Math.floor(this.state.currentPokemon / 2) + 273 * Math.floor(this.state.currentPokemon / 2 + 1)) + "px"
+            } else if (width < 944) {
+                document.querySelector(".box").style.top = (73 + 10 * this.state.currentPokemon + 273 * (this.state.currentPokemon + 1)) + "px"
+            }
+            
+        }
+    }
+
     render() {
         const pokemonProps = (index) => {
             return {
@@ -288,7 +299,7 @@ class Team extends React.Component {
                 selectedNature: this.state.selectedNatures[index],
                 displaying: this.state.displaying,
                 isEditing: this.state.currentPokemon === index,
-                closeDisplaying: () => this.closeDisplaying(index)
+                closeDisplaying: this.closeDisplaying,
             }
         }
         const statCalculation = (number) => {
@@ -311,7 +322,7 @@ class Team extends React.Component {
                     <input readOnly value={this.props.teamName}></input>
                 </div>
                 <div className="team-pokemons">
-                    <Pokemon {...pokemonProps(0)} />
+                    <Pokemon {...pokemonProps(0)}/>
                     <Pokemon {...pokemonProps(1)} />
                     <Pokemon {...pokemonProps(2)} />
                     <Pokemon {...pokemonProps(3)} />
@@ -320,25 +331,26 @@ class Team extends React.Component {
                 </div>
                 {this.state.displaying === "moves" && (
                     <div className="box">
+                        <FontAwesomeIcon icon={faTimes} className="close-icon" onClick={this.closeDisplaying}></FontAwesomeIcon>
                         <div className="box-heading">
-                            <p style={{ width: '20%' }}>Name</p>
+                            <p style={{ width: '25%' }}>Name</p>
                             <p>Type</p>
                             <p>Cat.</p>
                             <p>Pow.</p>
                             <p>Acc.</p>
                             <p>PP</p>
-                            <p style={{ width: '40%' }}>Effect</p>
+                            <p style={{ width: '35%' }}>Effect</p>
                         </div>
                         <div className="items">
                             {this.state.moves.filter(move => move.name.toLowerCase().includes(this.state.searchMove.toLowerCase())).map((move, index) => (
                                 <div key={index} onClick={() => this.selectMove(move.name)} className={`item ${this.state.highlightedMoves.filter(highlightedMove => highlightedMove === move.name).length > 0 ? 'selected' : ''}`}>
-                                    <p style={{ width: '20%' }}>{move.name}</p>
+                                    <p style={{ width: '25%' }}>{move.name}</p>
                                     <p><img src={require('../asset/' + move.type.name + '.png')} alt={move.type.name}></img></p>
                                     <p><img src={require('../asset/' + move.damage_class.name + '.png')} alt={move.damage_class.name}></img></p>
                                     <p>{move.power}</p>
                                     <p>{move.accuracy}</p>
                                     <p>{move.pp * 8 / 5}</p>
-                                    <p style={{ fontSize: 12, width: '40%' }}>{move.effect_entries[0] ? move.effect_entries[0].short_effect : ""}</p>
+                                    <p style={{ fontSize: 12, width: '35%' }}>{move.effect_entries[0] ? move.effect_entries[0].short_effect : ""}</p>
                                 </div>
                             ))}
                         </div>
@@ -346,15 +358,16 @@ class Team extends React.Component {
                 )}
                 {this.state.displaying === "abilities" && (
                     <div className="box">
+                        <FontAwesomeIcon icon={faTimes} className="close-icon" onClick={this.closeDisplaying}></FontAwesomeIcon>
                         <div className="box-heading">
-                            <p style={{ width: '15%' }}>Name</p>
-                            <p style={{ width: '85%' }}>Effect</p>
+                            <p style={{ width: '30%' }}>Name</p>
+                            <p style={{ width: '70%' }}>Effect</p>
                         </div>
                         <div className="items">
                             {this.state.abilities.filter(ability => ability.name.toLowerCase().includes(this.state.searchAbility.toLowerCase())).map((ability, index) => (
                                 <div key={index} onClick={() => this.selectAbility(ability.name)} className={`item ${this.state.highlightedAbility === ability.name ? 'selected' : ''}`}>
-                                    <p style={{ width: '15%' }}>{ability.name}</p>
-                                    <p style={{ width: '85%' }}>{ability.effect}</p>
+                                    <p style={{ width: '30%' }}>{ability.name}</p>
+                                    <p style={{ width: '70%' }}>{ability.effect}</p>
                                 </div>
                             ))}
                         </div>
@@ -362,21 +375,22 @@ class Team extends React.Component {
                 )}
                 {this.state.displaying === "items" && (
                     <div className="box">
+                        <FontAwesomeIcon icon={faTimes} className="close-icon" onClick={this.closeDisplaying}></FontAwesomeIcon>
                         <div className="box-heading">
-                            <p style={{ width: '25%' }}>Name</p>
-                            <p style={{ width: '75%' }}>Effect</p>
+                            <p style={{ width: '30%' }}>Name</p>
+                            <p style={{ width: '70%' }}>Effect</p>
                         </div>
                         <div className="items">
                             {heldItems.filter(item => item.name.toLowerCase().includes(this.state.searchItem.toLowerCase())).map((item, index) => (
                                 <div key={index} onClick={() => this.selectItem(item)} className={`item ${this.state.highlightedItem === item.name ? 'selected' : ''}`}>
-                                    <p style={{ width: '25%', display: 'flex', alignItems: 'center', gap: '5px' }}><img src={item.sprite} alt="item sprite"></img>{item.name}</p>
-                                    <p style={{ width: '75%' }}>{item.effect}</p>
+                                    <p style={{ width: '30%', display: 'flex', alignItems: 'center', gap: '5px' }}><img src={item.sprite} alt="item sprite"></img>{item.name}</p>
+                                    <p style={{ width: '70%' }}>{item.effect}</p>
                                 </div>
                             ))}
                             {changeItems.filter(item => item.name.toLowerCase().includes(this.state.searchItem.toLowerCase())).map((item, index) => (
                                 <div key={index} onClick={() => this.selectItem(item)} className={`item ${this.state.highlightedItem === item.name ? 'selected' : ''}`}>
-                                    <p style={{ width: '25%', display: 'flex', alignItems: 'center', gap: '5px' }}><img style={{ width: 30 }} src={item.sprite} alt="item sprite"></img>{item.name}</p>
-                                    <p style={{ width: '75%' }}>{item.effect}</p>
+                                    <p style={{ width: '30%', display: 'flex', alignItems: 'center', gap: '5px' }}><img style={{ width: 30 }} src={item.sprite} alt="item sprite"></img>{item.name}</p>
+                                    <p style={{ width: '70%' }}>{item.effect}</p>
                                 </div>
                             ))}
                         </div>
@@ -384,6 +398,7 @@ class Team extends React.Component {
                 )}
                 {this.state.displaying === "stats" && (
                     <div className="box">
+                        <FontAwesomeIcon icon={faTimes} className="close-icon" onClick={this.closeDisplaying}></FontAwesomeIcon>
                         <table>
                             <tr>
                                 <th style={{ width: "25%", textAlign: "left" }}></th>
@@ -402,8 +417,8 @@ class Team extends React.Component {
                                             <polygon points={points(number)} fill={colors[number]}></polygon>
                                         </svg>
                                     </td>
-                                    <td><input style={{ width: 45 }} type="number" min="0" max="31" onKeyDown={handleMinus} onBlur={(event) => this.blurStats("iv", number, event)} value={this.state.ivs[number]} onChange={(event) => this.changeStat("iv", number, event)}></input></td>
-                                    <td><input style={{ width: 45 }} type="number" min="0" max="252" onKeyDown={handleMinus} onBlur={(event) => this.blurStats("ev", number, event)} value={this.state.evs[number]} onChange={(event) => this.changeStat("ev", number, event)}></input></td>
+                                    <td><input className="stat-input" type="number" min="0" max="31" onKeyDown={handleMinus} onBlur={(event) => this.blurStats("iv", number, event)} value={this.state.ivs[number]} onChange={(event) => this.changeStat("iv", number, event)}></input></td>
+                                    <td><input className="stat-input" type="number" min="0" max="252" onKeyDown={handleMinus} onBlur={(event) => this.blurStats("ev", number, event)} value={this.state.evs[number]} onChange={(event) => this.changeStat("ev", number, event)}></input></td>
                                     <td>{number === 0 ? Math.floor((this.state.baseStats[0] * 2 + this.state.ivs[0] + this.state.evs[0] / 4) * this.state.level / 100 + this.state.level + 10) : statCalculation(number)}</td>
                                 </tr>
                             ))}

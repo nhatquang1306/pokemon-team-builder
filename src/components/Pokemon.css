@@ -138,6 +138,7 @@
 .pokemon > .others > div > input {
     border: none;
     outline: none;
+    height: 16px;
 }
 .pokemon > .others > div > label {
     font-size: 12px;

@@ -521,6 +521,7 @@ class Pokemon extends React.Component {
             importedMoves.forEach(move => {
                 move.name = move.name.replace(/^./, match => match.toUpperCase()).replace(/-(.)/g, (match, letter) => " " + letter.toUpperCase())
                 if (move.name === "Multi Attack") move.name = "Multi-Attack"
+                else if (move.name === "U Turn") move.name = "U-turn"
                 if (move.effect_entries[0]) move.effect_entries[0].short_effect = move.effect_entries[0].short_effect.replace(/\$effect_chance/, move.effect_chance)
             });
             let arr2 = [], arr3 = importedMoves
@@ -891,7 +892,7 @@ class Pokemon extends React.Component {
             }
         }
         return (
-            <div className="pokemon">
+            <div className={`pokemon ${this.props.isEditing && this.props.displaying !== "" ? "current-pokemon" : ""}`}>
                 {this.state.loading && <div className="loading-circle-container"><div className="loading-circle"></div></div>}
                 <Select styles={selectStyles} components={{ DropdownIndicator: CustomDropdownIndicator }} className="select" options={this.props.pokemons} value={this.state.currentId !== null ? this.props.pokemons[this.state.currentId - 1] : ""} placeholder="Select a pokemon" onChange={(option) => this.choosePokemon(option, undefined)} isSearchable></Select>
                 <div className="image">
