@@ -289,8 +289,8 @@ class Team extends React.Component {
             if (Math.min(window.innerWidth, window.screen.width) <= 487) {
                 document.querySelector(".team").style.height = ((Math.min(window.innerWidth, window.screen.width) / 467) * (1742 + document.querySelector(".box").clientHeight)) + "px"
             }
-        }  else if (this.state.displaying !== prevState.displaying && this.state.displaying === "" && window.screen.width <= 487) {
-            document.querySelector(".team").style.height = ((window.screen.width / 467) * 1730) + "px"
+        }  else if (this.state.displaying !== prevState.displaying && this.state.displaying === "" && Math.min(window.innerWidth, window.screen.width) <= 487) {
+            document.querySelector(".team").style.height = ((Math.min(window.innerWidth, window.screen.width) / 467) * 1730) + "px"
         }
     }
 
