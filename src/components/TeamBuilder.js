@@ -50,6 +50,11 @@ class TeamBuilder extends React.Component {
       this.setState({
         teams: teams,
         teamPokemons: arr
+      }, () => {
+        let teams = document.querySelector(".teams")
+        if (teams.scrollHeight > teams.clientHeight) {
+          teams.classList.add("scrollbar-present")
+        }
       })
     }
   }
@@ -104,6 +109,11 @@ class TeamBuilder extends React.Component {
         createName: "",
         teams: teams,
         teamPokemons: [...this.state.teamPokemons, ["", "", "", "", "", ""]]
+      }, () => {
+        let teams = document.querySelector(".teams")
+        if (teams.scrollHeight > teams.clientHeight) {
+          teams.classList.add("scrollbar-present")
+        }
       })
       localStorage.setItem("teams", JSON.stringify(teams))
       localStorage.setItem(name + "sprites", JSON.stringify(["", "", "", "", "", ""]))
@@ -181,6 +191,11 @@ class TeamBuilder extends React.Component {
         editingName: false,
         teams: teams,
         teamPokemons: pokemons
+      }, () => {
+        let teams = document.querySelector(".teams")
+        if (teams.scrollHeight <= teams.clientHeight) {
+          teams.classList.remove("scrollbar-present")
+        }
       })
       localStorage.setItem("teams", JSON.stringify(teams))
     }
@@ -205,12 +220,12 @@ class TeamBuilder extends React.Component {
                 <FontAwesomeIcon icon={faTrashAlt} className="icon" onClick={() => this.deleteTeam(index)}/>
               </div>  
               <div className="sprites">
-              {this.state.teamPokemons[index][0] === "" ? <div style={{width: 80, height: 80}}></div> : <img src={this.state.teamPokemons[index][0]} alt='sprite'></img>}
-              {this.state.teamPokemons[index][1] === "" ? <div style={{width: 80, height: 80}}></div> : <img src={this.state.teamPokemons[index][1]} alt='sprite'></img>}
-              {this.state.teamPokemons[index][2] === "" ? <div style={{width: 80, height: 80}}></div> : <img src={this.state.teamPokemons[index][2]} alt='sprite'></img>}
-              {this.state.teamPokemons[index][3] === "" ? <div style={{width: 80, height: 80}}></div> : <img src={this.state.teamPokemons[index][3]} alt='sprite'></img>}
-              {this.state.teamPokemons[index][4] === "" ? <div style={{width: 80, height: 80}}></div> : <img src={this.state.teamPokemons[index][4]} alt='sprite'></img>}
-              {this.state.teamPokemons[index][5] === "" ? <div style={{width: 80, height: 80}}></div> : <img src={this.state.teamPokemons[index][5]} alt='sprite'></img>}
+              {this.state.teamPokemons[index][0] === "" ? <div className="placeholder"></div> : <img src={this.state.teamPokemons[index][0]} alt='sprite'></img>}
+              {this.state.teamPokemons[index][1] === "" ? <div className="placeholder"></div> : <img src={this.state.teamPokemons[index][1]} alt='sprite'></img>}
+              {this.state.teamPokemons[index][2] === "" ? <div className="placeholder"></div> : <img src={this.state.teamPokemons[index][2]} alt='sprite'></img>}
+              {this.state.teamPokemons[index][3] === "" ? <div className="placeholder"></div> : <img src={this.state.teamPokemons[index][3]} alt='sprite'></img>}
+              {this.state.teamPokemons[index][4] === "" ? <div className="placeholder"></div> : <img src={this.state.teamPokemons[index][4]} alt='sprite'></img>}
+              {this.state.teamPokemons[index][5] === "" ? <div className="placeholder"></div> : <img src={this.state.teamPokemons[index][5]} alt='sprite'></img>}
               </div>
             </div>  
           ))}

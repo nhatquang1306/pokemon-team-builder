@@ -6,6 +6,7 @@
         "pokemons box";
     grid-template-columns: 904px 1fr;
     gap: 20px;
+    
 }
 .taskbar {
     grid-area: taskbar;
@@ -39,12 +40,14 @@
     min-width: 700px;
     background-color: rgb(135,206,250, 0.7);
     position: relative;
+    min-height: 400px;
 }
 .box > .close-icon {
     position: absolute;
-    right: 10px;
-    top: 5px;
+    right: 8px;
+    top: 4px;
     cursor: pointer;
+    font-size: 20px;
 
 }
 .box-heading {
@@ -105,35 +108,30 @@
   background-color: #6B6B6B;
   border-radius: 4px;
 }
-.box > table {
+.box > .stats-table {
     border-collapse: collapse;
+    border-spacing: 0;
     margin: 10px 20px;
-    width: calc(100% - 40px);
-    table-layout: fixed;
 }
-.box > table > tr > th, .box > table > tr > td {
+.box > .stats-table > tr > th, .box > .stats-table > tr > td {
     text-align: center;
-    width: calc(18.75% - 25px);
     padding: 8px 0;
 }
-.box > table > tr > td > .stat-input {
+
+.box > .stats-table > tr > td > .stat-input {
     width: 45px;
 }
-.box > .nature {
+.box > .stats-table > tr > .nature {
     display: flex;
     gap: 15px;
-    margin: 20px;
-    position: relative;
+    padding-top: 38px;
+    width: 0;    
 }
-.box > .nature > p {
-    position: absolute;
-    width: 120px;
-    margin: 0;
-    top: 0;
-    right: calc(28.125% - 97.5px);
+.box > .stats-table > tr > .remaining-ev {
     font-style: italic;
-    text-align: center;
-    
+    padding-top: 38px;
+    width: 0;
+    white-space: nowrap;
 }
 
 @media screen and (max-width: 1666px) {
@@ -148,7 +146,7 @@
         width: 100%;
     }
     .team-pokemons > .current-pokemon {
-        margin-bottom: calc(60vh + 12px);
+        margin-bottom: calc(max(412px, 60vh + 12px));
     }
     .team-pokemons > .pokemon {
         height: 231px;
@@ -183,7 +181,20 @@
     .box > .items > .item > p > img {
         width: 23px;
     }
-    .box > table > tr > td > .stat-input {
-        width: 30px;
+    .box > .stats-table > tr > td > .stat-input {
+        width: 25px;
+        font-size: 11px;
+    }
+    .box > .stats-table > tr > .nature > select {
+        font-size: 11px;
+    }
+}
+@media screen and (max-width: 487px) {
+    .team {
+        padding: 20px 10px;
+        transform-origin: top left;
+    }
+    .box {
+        left: 10px;
     }
 }

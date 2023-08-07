@@ -6,7 +6,7 @@
     gap: 20px;
 }
 .create-team {
-    width: 650px;
+    width: 652px;
 }
 .create-team > .create {
     margin-right: 10px;
@@ -80,6 +80,10 @@
 .sprites > img {
     width: 80px
 }
+.sprites > .placeholder {
+    width: 80px;
+    height: 80px
+}
 @keyframes shake {
     0%, 100% {
       transform: translate(0, 0);
@@ -94,22 +98,34 @@
 @media screen and (max-width: 1000px) {
     .team-builder {
         align-items: center;
+        justify-content: start;
     }
     .teams {
         width: auto;
     }
+    .teams.scrollbar-present > .team-box {
+        width: 642px;
+    }
+    
 }
 @media screen and (max-width: 769px) {
     .create-team {
-        width: calc(100vw - 50px);
+        width: calc(100vw - 38px);
     }
     .team-box {
-        width: calc(100vw - 50px);
+        width: calc(100vw - 40px);
+    }
+    .teams.scrollbar-present > .team-box {
+        width: calc(100vw - 48px);
     }
     .sprites {
         height: 12vw
     }
     .sprites > img {
         width: 12vw
+    }
+    .sprites > .placeholder {
+        width: 12vw;
+        height: 12vw;
     }
 }

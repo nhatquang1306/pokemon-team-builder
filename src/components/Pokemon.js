@@ -168,7 +168,7 @@ class Pokemon extends React.Component {
         }
     }
     filterHeldItem(event) {
-        if (this.state.currentId !== null) {
+        if (this.state.currentId !== null && !this.state.loading) {
             let item = changeItems.filter(item => item.name === event.target.value)[0]
             if (this.state.form.includes("-mega") || (["arceus", "genesect", "silvally", "zacian", "zamazenta"].includes(this.state.pokemon.name) && this.state.form !== "")) {
                 this.changeForm({ target: { value: "" }, item: { name: event.target.value } })
@@ -273,7 +273,8 @@ class Pokemon extends React.Component {
                             pokemon: pokemon,
                             changeBackForm: false,
                             needToReimport: false,
-                            heldItem: item
+                            heldItem: item,
+                            loading: !needToReimport && event.target.value !== "" && this.state.pokemon.name !== "alcremie" ? true : false
                         }, () => {
                             if (needToReimport) {
                                 this.updateStats()
@@ -962,7 +963,7 @@ class Pokemon extends React.Component {
                     <div style={{ bottom: 96, left: 0 }}><p>SpA</p></div>
                     <div style={{ top: 96, left: 0 }}><p>SpD</p></div>
                     <div style={{ bottom: 0 }}><p>Spe</p></div>
-                    <svg width="88.6" height="102" style={{ cursor: "pointer" }}>
+                    <svg width="90" height="102" style={{ cursor: "pointer" }}>
                         <polygon points="43.3,0 86.6,25 86.6,75 43.3,100 0,75 0,25" fill="transparent" stroke="rgb(111, 111, 111)" strokeWidth="2" transform="translate(1,1)" />
                         <polygon points="43.3,0 86.6,25 86.6,75 43.3,100 0,75 0,25" fill="rgb(255, 255, 255)" transform="translate(1,1)" />
                         <polygon points={this.state.coords} fill="rgb(173, 255, 47)" transform="translate(1,1)" />

@@ -264,6 +264,14 @@ class Team extends React.Component {
     closeDisplaying() {
         this.setState({displaying: ""})
     }
+    componentDidMount() {
+        if (Math.min(window.innerWidth, window.screen.width) <= 487) {
+            let team = document.querySelector(".team")
+            let ratio = Math.min(window.innerWidth, window.screen.width) / 467
+            team.style.transform = `scale(${ratio}, ${ratio})`
+            team.style.height = (ratio * 1730) + "px"
+        }
+    }
     componentDidUpdate(prevProps, prevState) {
         if ((this.state.currentPokemon !== prevState.currentPokemon || this.state.displaying !== prevState.displaying) && this.state.displaying !== "") {
             let width = document.querySelector(".team").clientWidth
@@ -272,7 +280,17 @@ class Team extends React.Component {
             } else if (width < 944) {
                 document.querySelector(".box").style.top = (73 + 10 * this.state.currentPokemon + 273 * (this.state.currentPokemon + 1)) + "px"
             }
-            
+            let items = document.querySelector(".items")
+            if (items && items.scrollHeight > items.clientHeight) {
+                items.classList.add("scrollbar-present")
+            } else if (items) {
+                items.classList.remove("scrollbar-present")
+            }
+            if (window.screen.width <= 487) {
+                document.querySelector(".team").style.height = ((window.screen.width / 467) * (1742 + document.querySelector(".box").clientHeight)) + "px"
+            }
+        }  else if (this.state.displaying !== prevState.displaying && this.state.displaying === "" && window.screen.width <= 487) {
+            document.querySelector(".team").style.height = ((window.screen.width / 467) * 1730) + "px"
         }
     }
 
@@ -398,20 +416,20 @@ class Team extends React.Component {
                 {this.state.displaying === "stats" && (
                     <div className="box">
                         <FontAwesomeIcon icon={faTimes} className="close-icon" onClick={this.closeDisplaying}></FontAwesomeIcon>
-                        <table>
+                        <table className="stats-table">
                             <tr>
-                                <th style={{ width: "25%", textAlign: "left" }}></th>
+                                <th style={{ textAlign: "left" }}></th>
                                 <th>Base</th>
-                                <th style={{ width: 100 }}></th>
+                                <th style={{ width: "100px" }}></th>
                                 <th>IV</th>
                                 <th>EV</th>
                                 <th>Stat</th>
                             </tr>
                             {[0, 1, 2, 3, 4, 5].map(number => (
                                 <tr key={number}>
-                                    <td style={{ width: "20%", textAlign: "left" }}>{this.state.statNames[number]}</td>
+                                    <td style={{ textAlign: "left" }}>{this.state.statNames[number]}</td>
                                     <td>{this.state.baseStats[number]}</td>
-                                    <td style={{ width: 100 }}>
+                                    <td style={{ width: "100px" }}>
                                         <svg height="12px" width="100px">
                                             <polygon points={points(number)} fill={colors[number]}></polygon>
                                         </svg>
@@ -421,17 +439,22 @@ class Team extends React.Component {
                                     <td>{number === 0 ? Math.floor((this.state.baseStats[0] * 2 + this.state.ivs[0] + this.state.evs[0] / 4) * this.state.level / 100 + this.state.level + 10) : statCalculation(number)}</td>
                                 </tr>
                             ))}
+                            <tr>
+                                <td className="nature">
+                                    <label>Nature:</label>
+                                    <select value={this.state.nature} onChange={this.changeNature}>
+                                        {natures.map((nature, index) => (
+                                            <option key={index} value={nature.name}>{nature.name}{nature.effect.length > 0 ? ` (${nature.effect})` : ""}</option>
+                                        ))}
+                                    </select>
+                                </td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td className="remaining-ev">Remaining: {508 - this.state.evs.reduce((total, value) => total + value, 0)}</td>
+                                <td></td>
+                            </tr>
                         </table>
-                        <div className="nature">
-                            <label>Nature:</label>
-                            <select value={this.state.nature} onChange={this.changeNature}>
-                                {natures.map((nature, index) => (
-                                    <option key={index} value={nature.name}>{nature.name}{nature.effect.length > 0 ? ` (${nature.effect})` : ""}</option>
-                                ))}
-                            </select>
-                            <p>Remaining: {508 - this.state.evs.reduce((total, value) => total + value, 0)}</p>
-                        </div>
-
                     </div>
                 )}
             </div>
