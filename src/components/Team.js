@@ -65,8 +65,9 @@ class Team extends React.Component {
     constructor(props) {
         super(props)
         this.state = {
-            displaying: "",
+            ignoreScroll: false,
             currentPokemon: null,
+            displaying: "",
             moves: [], searchMove: "", highlightedMoves: [], selectedMoves: [],
             abilities: [], searchAbility: "", highlightedAbility: "", selectedAbilities: [],
             searchItem: "", highlightedItem: "", selectedItems: [],
@@ -91,6 +92,13 @@ class Team extends React.Component {
         this.changeNature = this.changeNature.bind(this)
         this.blurStats = this.blurStats.bind(this)
         this.closeDisplaying = this.closeDisplaying.bind(this)
+        this.resizeListenerBox = this.resizeListenerBox.bind(this)
+        this.resizeListenerWindow = this.resizeListenerWindow.bind(this)
+        this.ignoreScroll = this.ignoreScroll.bind(this)
+        this.scrollHandler = this.scrollHandler.bind(this)
+    }
+    ignoreScroll() {
+        this.setState({ignoreScroll: true})
     }
     blurStats(type, number, event) {
         if (event.target.value === "") {
@@ -144,6 +152,7 @@ class Team extends React.Component {
     }
     importAbilities(abilities, selectedAbility, index) {
         this.setState({
+            ignoreScroll: true,
             currentPokemon: index,
             displaying: "abilities",
             abilities: abilities,
@@ -151,27 +160,14 @@ class Team extends React.Component {
             searchAbility: ""
         })
     }
-    importMoves(moves, highlightedMoves, num, scroll, index) {
+    importMoves(moves, highlightedMoves, index) {
         this.setState({
+            ignoreScroll: true,
             displaying: "moves",
             moves: moves,
             currentPokemon: index,
             highlightedMoves: highlightedMoves,
             searchMove: "",
-        }, () => {
-            if (scroll && moves.filter(move => move.name === highlightedMoves[num]).length > 0) {
-                let moves = document.querySelectorAll(".box > .items > .selected")
-                for (let i = 0; i < 4; i++) {
-                    let moveName = moves[i].querySelector("p").textContent
-                    if (moveName === highlightedMoves[num]) {
-                        moves[i].scrollIntoView({
-                            behavior: "auto",
-                            block: "nearest",
-                        })
-                        break;
-                    }
-                }
-            }
         })
     }
     filterMoves(move, arr) {
@@ -224,19 +220,13 @@ class Team extends React.Component {
         }
         this.setState({ searchItem: searchItem, highlightedItem: item })
     }
-    openItems(heldItem, scroll, num) {
+    openItems(heldItem, num) {
         this.setState({
             displaying: "items",
             highlightedItem: heldItem,
             currentPokemon: num,
-            searchItem: ""
-        }, () => {
-            if (scroll && changeItems.concat(heldItems).filter(item => item.name === heldItem).length > 0) {        
-                document.querySelector(".box > .items > .selected").scrollIntoView({
-                    behavior: "auto",
-                    block: "nearest"
-                })         
-            }
+            searchItem: "",
+            ignoreScroll: true,
         })
     }
     openStats(baseStats, ivs, evs, level, nature, maxStats, index) {
@@ -265,6 +255,7 @@ class Team extends React.Component {
         this.setState({displaying: ""})
     }
     componentDidMount() {
+        window.visualViewport.addEventListener('resize', this.resizeListenerWindow)
         if (Math.min(window.innerWidth, window.screen.width) <= 487) {
             let team = document.querySelector(".team")
             let ratio = Math.min(window.innerWidth, window.screen.width) / 467
@@ -274,13 +265,14 @@ class Team extends React.Component {
     }
     componentDidUpdate(prevProps, prevState) {
         if ((this.state.currentPokemon !== prevState.currentPokemon || this.state.displaying !== prevState.displaying) && this.state.displaying !== "") {
+            window.visualViewport.addEventListener('resize', this.resizeListenerBox)
             let width = document.querySelector(".team").clientWidth
             if (width === 944) {
                 document.querySelector(".box").style.top = (73 + 10 * Math.floor(this.state.currentPokemon / 2) + 273 * Math.floor(this.state.currentPokemon / 2 + 1)) + "px"
             } else if (width < 944) {
                 document.querySelector(".box").style.top = (73 + 10 * this.state.currentPokemon + 273 * (this.state.currentPokemon + 1)) + "px"
             }
-            let items = document.querySelector(".items")
+            let items = document.querySelector(".items")  
             if (items && items.offsetWidth !== items.scrollWidth) {
                 items.classList.add("scrollbar-present")
             } else if (items) {
@@ -292,6 +284,27 @@ class Team extends React.Component {
         }  else if (this.state.displaying !== prevState.displaying && this.state.displaying === "" && Math.min(window.innerWidth, window.screen.width) <= 487) {
             document.querySelector(".team").style.height = ((Math.min(window.innerWidth, window.screen.width) / 467) * 1730) + "px"
         }
+    }
+    componentWillUnmount() {
+        window.visualViewport.removeEventListener('resize', this.resizeListenerBox)
+        window.visualViewport.removeEventListener('resize', this.resizeListenerWindow)
+        document.removeEventListener('scroll', this.scrollHandler)
+    }
+    resizeListenerBox() {
+        let items = document.querySelector(".items")
+        items.addEventListener('scroll', this.scrollHandler)
+        window.visualViewport.removeEventListener('resize', this.resizeListenerBox)
+    }
+    resizeListenerWindow() {
+        document.addEventListener('scroll', this.scrollHandler)
+        window.visualViewport.removeEventListener('resize', this.resizeListenerWindow)
+    }
+    scrollHandler() {
+        if (this.state.ignoreScroll) {
+            this.setState({ignoreScroll: false})
+        } else {
+            document.activeElement.blur()
+        }   
     }
 
     render() {
@@ -305,10 +318,10 @@ class Team extends React.Component {
                 forms: this.props.forms,
                 filterMoves: this.filterMoves,
                 filterHeldItem: this.filterItems,
-                openItems: (heldItem, scroll) => this.openItems(heldItem, scroll, index),
+                openItems: (heldItem) => this.openItems(heldItem, index),
                 filterAbilities: this.filterAbilities,
                 exportAbilities: (abilities, selected) => this.importAbilities(abilities, selected, index),
-                exportMoves: (moves, highlightedMoves, num, scroll) => this.importMoves(moves, highlightedMoves, num, scroll, index),
+                exportMoves: (moves, highlightedMoves) => this.importMoves(moves, highlightedMoves, index),
                 selectedMove: this.state.selectedMoves[index],
                 selectedAbility: this.state.selectedAbilities[index],
                 selectedItem: this.state.selectedItems[index],
@@ -434,8 +447,8 @@ class Team extends React.Component {
                                             <polygon points={points(number)} fill={colors[number]}></polygon>
                                         </svg>
                                     </td>
-                                    <td><input className="stat-input" type="number" min="0" max="31" onKeyDown={handleMinus} onBlur={(event) => this.blurStats("iv", number, event)} value={this.state.ivs[number]} onChange={(event) => this.changeStat("iv", number, event)}></input></td>
-                                    <td><input className="stat-input" type="number" min="0" max="252" onKeyDown={handleMinus} onBlur={(event) => this.blurStats("ev", number, event)} value={this.state.evs[number]} onChange={(event) => this.changeStat("ev", number, event)}></input></td>
+                                    <td><input className="stat-input" type="number" min="0" max="31" onKeyDown={handleMinus} onBlur={(event) => this.blurStats("iv", number, event)} value={this.state.ivs[number]} onFocus={this.ignoreScroll} onChange={(event) => this.changeStat("iv", number, event)}></input></td>
+                                    <td><input className="stat-input" type="number" min="0" max="252" onKeyDown={handleMinus} onBlur={(event) => this.blurStats("ev", number, event)} value={this.state.evs[number]} onFocus={this.ignoreScroll} onChange={(event) => this.changeStat("ev", number, event)}></input></td>
                                     <td>{number === 0 ? Math.floor((this.state.baseStats[0] * 2 + this.state.ivs[0] + this.state.evs[0] / 4) * this.state.level / 100 + this.state.level + 10) : statCalculation(number)}</td>
                                 </tr>
                             ))}

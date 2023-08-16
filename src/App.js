@@ -8,7 +8,7 @@ class App extends React.Component {
     super(props)
     this.state = {
       pokemons: [],
-      forms: []
+      forms: [],
     }
   }
   componentDidMount() {

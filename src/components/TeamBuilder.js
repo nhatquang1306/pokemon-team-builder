@@ -16,6 +16,7 @@ class TeamBuilder extends React.Component {
       currentTeam: "",
       editingName: false,
       currentEdit: null,
+      ignoreScroll: false
     }
     this.createTeam = this.createTeam.bind(this)
     this.createTeamEnter = this.createTeamEnter.bind(this)
@@ -26,6 +27,23 @@ class TeamBuilder extends React.Component {
     this.enableNameEdit = this.enableNameEdit.bind(this)
     this.removeMessage = this.removeMessage.bind(this)
     this.returnHome = this.returnHome.bind(this)
+    this.resizeListener = this.resizeListener.bind(this)
+    this.ignoreScroll = this.ignoreScroll.bind(this)
+  }
+  ignoreScroll() {
+    this.setState({ignoreScroll: true})
+  }
+  resizeListener() {
+    document.addEventListener('scroll', () => {
+      if (document.activeElement.id === "create-input") {
+        if (this.state.ignoreScroll) {
+          this.setState({ignoreScroll: false})
+        } else {
+          document.activeElement.blur()
+        }
+      }
+    })
+    window.visualViewport.removeEventListener('resize', this.resizeListener)
   }
   returnHome() {
     let teams = JSON.parse(localStorage.getItem("teams"))
@@ -42,6 +60,7 @@ class TeamBuilder extends React.Component {
     }
   }
   componentDidMount() {
+    window.visualViewport.addEventListener('resize', this.resizeListener)
     document.querySelector(".create").addEventListener("keydown", this.createTeamEnter)
     let teams = JSON.parse(localStorage.getItem("teams"))
     if (teams) {
@@ -192,7 +211,7 @@ class TeamBuilder extends React.Component {
       this.state.displaying === "team details" ? <Team pokemons={this.props.pokemons} forms={this.props.forms} returnHome={this.returnHome} teamName={this.state.currentTeam}/> : (
         <div className="team-builder">
           <div className="create-team">
-            <input placeholder="Team Name" className="create" value={this.state.createName} onChange={this.editCreateName} maxLength="15"></input>
+            <input id="create-input" type="text" placeholder="Team Name" className="create" onFocus={this.ignoreScroll} value={this.state.createName} onChange={this.editCreateName} maxLength="15"></input>
             <button onClick={this.createTeam}>Create Team</button>
             {this.state.message.length > 0 && <p>{this.state.message}</p>}
           </div>
