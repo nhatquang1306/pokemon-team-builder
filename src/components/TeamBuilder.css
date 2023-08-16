@@ -1,6 +1,5 @@
 .team-builder {
     padding: 20px;
-    min-height: calc(100vh - 40px);
     display: flex;
     flex-direction: column;
     gap: 20px;
@@ -102,10 +101,10 @@
     }
     .teams {
         width: auto;
+        max-height: none;
+        overflow-y: visible;
     }
-    .teams.scrollbar-present > .team-box {
-        width: 642px;
-    }
+
     
 }
 @media screen and (max-width: 769px) {
@@ -114,9 +113,6 @@
     }
     .team-box {
         width: calc(100vw - 40px);
-    }
-    .teams.scrollbar-present > .team-box {
-        width: calc(100vw - 48px);
     }
     .sprites {
         height: 12vw

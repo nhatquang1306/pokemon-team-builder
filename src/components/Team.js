@@ -281,7 +281,7 @@ class Team extends React.Component {
                 document.querySelector(".box").style.top = (73 + 10 * this.state.currentPokemon + 273 * (this.state.currentPokemon + 1)) + "px"
             }
             let items = document.querySelector(".items")
-            if (items && items.scrollHeight > items.clientHeight) {
+            if (items && items.offsetWidth !== items.scrollWidth) {
                 items.classList.add("scrollbar-present")
             } else if (items) {
                 items.classList.remove("scrollbar-present")
