@@ -1,15 +1,15 @@
 {
   "files": {
     "main.css": "/pokemon-team-builder/static/css/main.5353620e.css",
-    "main.js": "/pokemon-team-builder/static/js/main.f6af0eec.js",
+    "main.js": "/pokemon-team-builder/static/js/main.1158b32a.js",
     "static/media/background.jpg": "/pokemon-team-builder/static/media/background.7ae56d575b929fda9d47.jpg",
     "static/media/loading.png": "/pokemon-team-builder/static/media/loading.a835fb9ba399394db72d.png",
     "index.html": "/pokemon-team-builder/index.html",
     "main.5353620e.css.map": "/pokemon-team-builder/static/css/main.5353620e.css.map",
-    "main.f6af0eec.js.map": "/pokemon-team-builder/static/js/main.f6af0eec.js.map"
+    "main.1158b32a.js.map": "/pokemon-team-builder/static/js/main.1158b32a.js.map"
   },
   "entrypoints": [
     "static/css/main.5353620e.css",
-    "static/js/main.f6af0eec.js"
+    "static/js/main.1158b32a.js"
   ]
 }
