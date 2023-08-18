@@ -359,11 +359,10 @@ class Team extends React.Component {
         scrollTimeout = setTimeout(() => {
             if (this.state.ignoreScroll) {
                 this.setState({ignoreScroll: false})
-            } else if (!document.activeElement.classList.contains("select")) {
+            } else if (!document.activeElement.id.startsWith("react-select") && document.activeElement.tagName !== "SELECT" && document.activeElement.getAttribute("type") !== "number") {
                 document.activeElement.blur()                
             }
         }, 100);
-        
     }
     resizeListenerWindow() {
         if (Math.min(window.innerHeight, window.screen.height) - window.visualViewport.height > 150 && Math.abs(Math.min(window.innerWidth, window.screen.width) - window.visualViewport.width) < 30) {
@@ -378,6 +377,7 @@ class Team extends React.Component {
                 pokemons: this.props.pokemons,
                 teamName: this.props.teamName,
                 barDisplay: this.state.displayPokemons[index],
+                ignoreScroll: this.ignoreScroll,
                 updateSprite: (sprite) => this.updateSprite(index, sprite),
                 index: index,
                 resetProps: () => this.resetProps(index),

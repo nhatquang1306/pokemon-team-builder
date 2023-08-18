@@ -894,7 +894,7 @@ class Pokemon extends React.Component {
         return (
             <div className={`pokemon ${this.props.isEditing ? "current-pokemon" : ""} ${this.props.barDisplay ? "display-pokemon" : ""}`}>
                 {this.state.loading && <div className="loading-circle-container"><div className="loading-circle"></div></div>}
-                <Select styles={selectStyles} components={{ DropdownIndicator: CustomDropdownIndicator }} className="select" options={this.props.pokemons} value={this.state.currentId !== null ? this.props.pokemons[this.state.currentId - 1] : ""} placeholder="Select a pokemon" onChange={(option) => this.choosePokemon(option, undefined)} isSearchable></Select>
+                <Select styles={selectStyles} components={{ DropdownIndicator: CustomDropdownIndicator }} className="select" options={this.props.pokemons} onFocus={this.props.ignoreScroll} value={this.state.currentId !== null ? this.props.pokemons[this.state.currentId - 1] : ""} placeholder="Select a pokemon" onChange={(option) => this.choosePokemon(option, undefined)} isSearchable></Select>
                 <div className="image">
                     {this.state.pokemon.sprites && (<img src={this.state.sprite} alt=""></img>)}
                 </div>
