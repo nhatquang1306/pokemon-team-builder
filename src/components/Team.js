@@ -96,7 +96,6 @@ class Team extends React.Component {
         this.resizeListenerBox = this.resizeListenerBox.bind(this)
         this.resizeListenerWindow = this.resizeListenerWindow.bind(this)
         this.scrollListener = this.scrollListener.bind(this)
-        this.ignoreScroll = this.ignoreScroll.bind(this)
         this.updateSprite = this.updateSprite.bind(this)
         this.selectDisplayPokemons = this.selectDisplayPokemons.bind(this)
     }
@@ -123,9 +122,6 @@ class Team extends React.Component {
         sprites[index] = sprite
         this.setState({sprites: sprites})
         localStorage.setItem(this.props.teamName + "sprites", JSON.stringify(sprites))
-    }
-    ignoreScroll() {
-        this.setState({ignoreScroll: true})
     }
     blurStats(type, number, event) {
         if (event.target.value === "") {
@@ -323,7 +319,6 @@ class Team extends React.Component {
                 let team = document.querySelector(".team")
                 let ratio = Math.min(window.innerWidth, window.screen.width) / 467
                 team.style.transform = `scale(${ratio}, ${ratio})`
-                team.style.maxHeight = Math.min(window.innerHeight, window.screen.height) - 40 + "px" 
             }
         }
         
@@ -336,6 +331,9 @@ class Team extends React.Component {
                 items.classList.add("scrollbar-present")
             } else if (items) {
                 items.classList.remove("scrollbar-present")
+            }
+            if (Math.min(window.innerWidth, window.screen.width) <= 487) {
+                document.querySelector(".box").style.height = (Math.min(window.innerHeight, window.screen.height) - 412) * 467 / Math.min(window.innerWidth, window.screen.width) + "px"
             }
         }
     }
@@ -362,7 +360,7 @@ class Team extends React.Component {
             } else if (!document.activeElement.id.startsWith("react-select") && document.activeElement.tagName !== "SELECT" && document.activeElement.getAttribute("type") !== "number") {
                 document.activeElement.blur()                
             }
-        }, 100);
+        }, 50);
     }
     resizeListenerWindow() {
         if (Math.min(window.innerHeight, window.screen.height) - window.visualViewport.height > 150 && Math.abs(Math.min(window.innerWidth, window.screen.width) - window.visualViewport.width) < 30) {
@@ -377,7 +375,6 @@ class Team extends React.Component {
                 pokemons: this.props.pokemons,
                 teamName: this.props.teamName,
                 barDisplay: this.state.displayPokemons[index],
-                ignoreScroll: this.ignoreScroll,
                 updateSprite: (sprite) => this.updateSprite(index, sprite),
                 index: index,
                 resetProps: () => this.resetProps(index),
@@ -519,8 +516,8 @@ class Team extends React.Component {
                                             <polygon points={points(number)} fill={colors[number]}></polygon>
                                         </svg>
                                     </td>
-                                    <td><input className="stat-input" type="number" min="0" max="31" onKeyDown={handleMinus} onBlur={(event) => this.blurStats("iv", number, event)} value={this.state.ivs[number]} onFocus={this.ignoreScroll} onChange={(event) => this.changeStat("iv", number, event)}></input></td>
-                                    <td><input className="stat-input" type="number" min="0" max="252" onKeyDown={handleMinus} onBlur={(event) => this.blurStats("ev", number, event)} value={this.state.evs[number]} onFocus={this.ignoreScroll} onChange={(event) => this.changeStat("ev", number, event)}></input></td>
+                                    <td><input className="stat-input" type="number" min="0" max="31" onKeyDown={handleMinus} onBlur={(event) => this.blurStats("iv", number, event)} value={this.state.ivs[number]} onChange={(event) => this.changeStat("iv", number, event)}></input></td>
+                                    <td><input className="stat-input" type="number" min="0" max="252" onKeyDown={handleMinus} onBlur={(event) => this.blurStats("ev", number, event)} value={this.state.evs[number]} onChange={(event) => this.changeStat("ev", number, event)}></input></td>
                                     <td>{number === 0 ? Math.floor((this.state.baseStats[0] * 2 + this.state.ivs[0] + this.state.evs[0] / 4) * this.state.level / 100 + this.state.level + 10) : statCalculation(number)}</td>
                                 </tr>
                             ))}

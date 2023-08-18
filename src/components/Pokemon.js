@@ -123,7 +123,7 @@ class Pokemon extends React.Component {
         this.state = {
             loading: false,
             currentId: null,
-            currentMove: null,
+            currentMove: null, selectDisabled: false,
             pokemon: { name: "" }, sprite: "",
             nickname: "", level: null, gender: null, shiny: "No",
             highlightedMoves: ["", "", "", ""], importedMoves: [], moves: [],
@@ -157,8 +157,9 @@ class Pokemon extends React.Component {
         this.autocompleteAbility = this.autocompleteAbility.bind(this)
         this.autocompleteItem = this.autocompleteItem.bind(this)
         this.autocompleteMove = this.autocompleteMove.bind(this)
+        this.disableSelect = this.disableSelect.bind(this)
     }
-    
+
     changeNickname(event) {
         this.setState({ nickname: event.target.value.length > 12 ? this.state.nickname : event.target.value })
     }
@@ -664,7 +665,17 @@ class Pokemon extends React.Component {
             highlightedMoves: highlightedMoves
         })
     }
+    disableSelect(event) {
+        if (event.target.tagName === "SELECT") {
+            this.setState({selectDisabled: true})
+        } else {
+            this.setState({selectDisabled: false})
+        }
+    }
     componentDidMount() {
+        if (Math.min(window.innerWidth, window.screen.width) <= 767) {
+            document.addEventListener('touchstart', this.disableSelect)
+        }
         const state = JSON.parse(localStorage.getItem(this.props.teamName + this.props.index));
         if (state && state.currentId !== null) {
             setTimeout(() => this.choosePokemon({id: state.currentId}, state), 10)                
@@ -705,6 +716,7 @@ class Pokemon extends React.Component {
         }
     }
     componentWillUnmount() {
+        document.removeEventListener('touchstart', this.disableSelect)
         let pokemons = Array.from(document.querySelectorAll(".pokemon"))
         pokemons.forEach((pokemon, index) => {
             if (index === this.props.index) {
@@ -894,7 +906,7 @@ class Pokemon extends React.Component {
         return (
             <div className={`pokemon ${this.props.isEditing ? "current-pokemon" : ""} ${this.props.barDisplay ? "display-pokemon" : ""}`}>
                 {this.state.loading && <div className="loading-circle-container"><div className="loading-circle"></div></div>}
-                <Select styles={selectStyles} components={{ DropdownIndicator: CustomDropdownIndicator }} className="select" options={this.props.pokemons} value={this.state.currentId !== null ? this.props.pokemons[this.state.currentId - 1] : ""} placeholder="Select a pokemon" onChange={(option) => this.choosePokemon(option, undefined)} isSearchable></Select>
+                <Select styles={selectStyles} components={{ DropdownIndicator: CustomDropdownIndicator }} className="select" options={this.props.pokemons} value={this.state.currentId !== null ? this.props.pokemons[this.state.currentId - 1] : ""} placeholder="Select a pokemon" onChange={(option) => this.choosePokemon(option, undefined)} isDisabled={this.state.selectDisabled} isSearchable></Select>
                 <div className="image">
                     {this.state.pokemon.sprites && (<img src={this.state.sprite} alt=""></img>)}
                 </div>
@@ -904,7 +916,7 @@ class Pokemon extends React.Component {
                 <div className="attributes">
                     <div style={{ width: 'calc(26% - 8.8px)' }}>
                         <label>Nickname</label>
-                        <input value={this.state.nickname} onChange={this.changeNickname} type="text" id="nickname" placeholder={this.state.currentId !== null ? this.props.pokemons[this.state.currentId - 1].label : ""}></input>
+                        <input value={this.state.nickname} onChange={this.changeNickname} type="text" id="react-select-nickname" placeholder={this.state.currentId !== null ? this.props.pokemons[this.state.currentId - 1].label : ""}></input>
                     </div>
                     <div>
                         <label>Level</label>

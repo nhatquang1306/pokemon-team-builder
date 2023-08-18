@@ -246,7 +246,10 @@
     .team {
         padding: 20px 10px;
         transform-origin: top left;
+        position: relative;
     }
-    
-
+    .box {
+        top: 392px;
+        position: absolute;
+    }
 }
