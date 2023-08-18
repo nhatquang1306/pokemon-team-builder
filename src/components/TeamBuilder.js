@@ -16,7 +16,7 @@ class TeamBuilder extends React.Component {
       currentTeam: "",
       editingName: false,
       currentEdit: null,
-      ignoreScroll: false
+      ignoreScroll: false,
     }
     this.createTeam = this.createTeam.bind(this)
     this.createTeamEnter = this.createTeamEnter.bind(this)
@@ -34,16 +34,19 @@ class TeamBuilder extends React.Component {
     this.setState({ignoreScroll: true})
   }
   resizeListener() {
-    document.addEventListener('scroll', () => {
-      if (document.activeElement.id === "create-input") {
-        if (this.state.ignoreScroll) {
-          this.setState({ignoreScroll: false})
-        } else {
-          document.activeElement.blur()
+    if (Math.min(window.innerHeight, window.screen.height) - window.visualViewport.height > 150 && Math.abs(Math.min(window.innerWidth, window.screen.width) - window.visualViewport.width) < 30) {
+      document.addEventListener('scroll', () => {
+        if (document.activeElement.id === "create-input") {
+          if (this.state.ignoreScroll) {
+            this.setState({ignoreScroll: false})
+          } else {
+            document.activeElement.blur()
+          }
         }
-      }
-    })
-    window.visualViewport.removeEventListener('resize', this.resizeListener)
+      })
+      window.visualViewport.removeEventListener('resize', this.resizeListener)
+    }
+    
   }
   returnHome() {
     let teams = JSON.parse(localStorage.getItem("teams"))
@@ -135,7 +138,8 @@ class TeamBuilder extends React.Component {
     if (event.target.closest(".icon, .edit")) return
     this.setState({
       displaying: "team details",
-      currentTeam: team
+      currentTeam: team,
+      editingName: false
     })
   }
   confirmTeamName(event) {
@@ -224,12 +228,12 @@ class TeamBuilder extends React.Component {
                 <FontAwesomeIcon icon={faTrashAlt} className="icon" onClick={() => this.deleteTeam(index)}/>
               </div>  
               <div className="sprites">
-              {this.state.teamPokemons[index][0] === "" ? <div className="placeholder"></div> : <img src={this.state.teamPokemons[index][0]} alt='sprite'></img>}
-              {this.state.teamPokemons[index][1] === "" ? <div className="placeholder"></div> : <img src={this.state.teamPokemons[index][1]} alt='sprite'></img>}
-              {this.state.teamPokemons[index][2] === "" ? <div className="placeholder"></div> : <img src={this.state.teamPokemons[index][2]} alt='sprite'></img>}
-              {this.state.teamPokemons[index][3] === "" ? <div className="placeholder"></div> : <img src={this.state.teamPokemons[index][3]} alt='sprite'></img>}
-              {this.state.teamPokemons[index][4] === "" ? <div className="placeholder"></div> : <img src={this.state.teamPokemons[index][4]} alt='sprite'></img>}
-              {this.state.teamPokemons[index][5] === "" ? <div className="placeholder"></div> : <img src={this.state.teamPokemons[index][5]} alt='sprite'></img>}
+              {this.state.teamPokemons[index][0] === "" ? <div className="placeholder"></div> : <img src={this.state.teamPokemons[index][0]} alt=''></img>}
+              {this.state.teamPokemons[index][1] === "" ? <div className="placeholder"></div> : <img src={this.state.teamPokemons[index][1]} alt=''></img>}
+              {this.state.teamPokemons[index][2] === "" ? <div className="placeholder"></div> : <img src={this.state.teamPokemons[index][2]} alt=''></img>}
+              {this.state.teamPokemons[index][3] === "" ? <div className="placeholder"></div> : <img src={this.state.teamPokemons[index][3]} alt=''></img>}
+              {this.state.teamPokemons[index][4] === "" ? <div className="placeholder"></div> : <img src={this.state.teamPokemons[index][4]} alt=''></img>}
+              {this.state.teamPokemons[index][5] === "" ? <div className="placeholder"></div> : <img src={this.state.teamPokemons[index][5]} alt=''></img>}
               </div>
             </div>  
           ))}

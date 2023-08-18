@@ -162,9 +162,9 @@ class Pokemon extends React.Component {
     changeNickname(event) {
         this.setState({ nickname: event.target.value.length > 12 ? this.state.nickname : event.target.value })
     }
-    openItems() {
+    openItems(scroll) {
         if (this.state.currentId !== null) {
-            this.props.openItems(this.state.heldItem);
+            this.props.openItems(this.state.heldItem, scroll);
         }
     }
     filterHeldItem(event) {
@@ -238,7 +238,7 @@ class Pokemon extends React.Component {
                     }, () => {
                         this.updateStats()
                         if (this.props.isEditing && this.props.displaying === "stats") this.openStats()
-                        else if (itemChanged && this.props.isEditing && this.props.displaying === "items") this.openItems()
+                        else if (itemChanged && this.props.isEditing && this.props.displaying === "items") this.openItems(true)
                     })
                 })
             } else {
@@ -309,7 +309,7 @@ class Pokemon extends React.Component {
                 needToReimport: false,
                 loading: false
             }, () => {
-                if (itemChanged && this.props.isEditing && this.props.displaying === "items") this.openItems()
+                if (itemChanged && this.props.isEditing && this.props.displaying === "items") this.openItems(true)
             })
         })
     }
@@ -564,9 +564,9 @@ class Pokemon extends React.Component {
             })
         })
     }
-    exportMoves(num) {
+    exportMoves(num, scroll) {
         if (this.state.currentId !== null) {
-            this.props.exportMoves(this.state.moves, this.state.highlightedMoves)
+            this.props.exportMoves(this.state.moves, this.state.highlightedMoves, num, scroll)
             this.setState({ currentMove: num })
         }
     }
@@ -848,9 +848,7 @@ class Pokemon extends React.Component {
             }
             let sprite = "https://img.pokemondb.net/sprites/home/" + (this.state.shiny === "Yes" ? "shiny/" : "normal/") + extension
             this.setState({ sprite: sprite})
-            let teamSprites = JSON.parse(localStorage.getItem(this.props.teamName + "sprites"))
-            teamSprites[this.props.index] = sprite
-            localStorage.setItem(this.props.teamName + "sprites", JSON.stringify(teamSprites))
+            this.props.updateSprite(sprite)
         }
     }
     openStats() {
@@ -887,17 +885,18 @@ class Pokemon extends React.Component {
                 type: "text",
                 ref: this.moveRefs[index],
                 onFocus: () => this.exportMoves(index),
+                onClick: () => this.exportMoves(index, true),
                 value: this.state.highlightedMoves[index],
                 onChange: (event) => this.filterMoves(event, index),
                 className: moveClasses(index)
             }
         }
         return (
-            <div className={`pokemon ${this.props.isEditing && this.props.displaying !== "" ? "current-pokemon" : ""}`}>
+            <div className={`pokemon ${this.props.isEditing ? "current-pokemon" : ""} ${this.props.barDisplay ? "display-pokemon" : ""}`}>
                 {this.state.loading && <div className="loading-circle-container"><div className="loading-circle"></div></div>}
                 <Select styles={selectStyles} components={{ DropdownIndicator: CustomDropdownIndicator }} className="select" options={this.props.pokemons} value={this.state.currentId !== null ? this.props.pokemons[this.state.currentId - 1] : ""} placeholder="Select a pokemon" onChange={(option) => this.choosePokemon(option, undefined)} isSearchable></Select>
                 <div className="image">
-                    {this.state.pokemon.sprites && (<img src={this.state.sprite} alt="pokemon"></img>)}
+                    {this.state.pokemon.sprites && (<img src={this.state.sprite} alt=""></img>)}
                 </div>
                 <div className="types">
                     {this.state.pokemon.types && this.state.pokemon.types.map((type, index) => <img key={index} src={require('../asset/' + type.type.name + '.png')} alt="type"></img>)}
@@ -946,7 +945,7 @@ class Pokemon extends React.Component {
                     </div>
                     <div>
                         <label>Item</label>
-                        <input type="text" id="item" onFocus={this.openItems} value={this.state.heldItem} onChange={this.filterHeldItem} className={this.props.isEditing && this.props.displaying === "items" ? 'selected' : (this.state.heldItem !== ""  && heldItems.concat(changeItems).filter(item => item.name === this.state.heldItem).length === 0 ? 'illegal' : '')}></input>
+                        <input type="text" id="item" onFocus={() => this.openItems(true)} value={this.state.heldItem} onChange={this.filterHeldItem} className={this.props.isEditing && this.props.displaying === "items" ? 'selected' : (this.state.heldItem !== ""  && heldItems.concat(changeItems).filter(item => item.name === this.state.heldItem).length === 0 ? 'illegal' : '')}></input>
                     </div>
                 </div>
                 <div className="moves">

@@ -6,13 +6,16 @@
         "pokemons box";
     grid-template-columns: 904px 1fr;
     gap: 20px;
-    
 }
+
 .taskbar {
     grid-area: taskbar;
     display: flex;
     gap: 20px;
     align-items: center;
+}
+.pokemon-bar {
+    display: none;
 }
 .taskbar > button {
     cursor: pointer;
@@ -138,31 +141,81 @@
     .team {
         display: flex;
         flex-direction: column;
-        position: relative;
         width: 904px;
         margin: 0 auto;
+        gap: 0;
+        height: calc(100vh - 40px);
+    }
+    .pokemon-bar {
+        display: flex;
+        width: 437px;
+        margin: 15px 5px 0 5px;
+    }
+    .pokemon-bar > img:nth-child(odd), .pokemon-bar > div:nth-child(odd) {
+        border-top: 1px solid rgb(111, 111, 111);
+        border-left: 1px solid rgb(111, 111, 111);
+        border-top-left-radius: 5px;
+        background-color: rgb(222, 219, 219);
+        padding: 3px;
+        padding-right: 15px;
+    }
+    .pokemon-bar > img:nth-child(even), .pokemon-bar > div:nth-child(even) {
+        border-top: 1px solid rgb(111, 111, 111);
+        border-right: 1px solid rgb(111, 111, 111);
+        border-top-right-radius: 5px;
+        background-color: rgb(222, 219, 219);
+        padding: 3px;
+        
+    }
+    .pokemon-bar > img:nth-child(4), .pokemon-bar > img:nth-child(2), .pokemon-bar > div:nth-child(4), .pokemon-bar > div:nth-child(2) {
+        margin-right: auto;
+    }
+    .pokemon-bar > img.display-bar:nth-child(odd), .pokemon-bar > div.display-bar:nth-child(odd) {
+        background-color: rgb(196, 229, 249);
+        box-shadow: 3px 3px 3px rgb(255, 255, 255, 0.5) inset;
+    }
+    .pokemon-bar > img.display-bar:nth-child(even), .pokemon-bar > div.display-bar:nth-child(even) {
+        background-color: rgb(196, 229, 249);
+        box-shadow: -3px 3px 3px rgb(255, 255, 255, 0.5) inset;
     }
     .taskbar {
         width: 100%;
     }
-    .team-pokemons > .current-pokemon {
-        margin-bottom: calc(max(412px, 60vh + 12px));
-    }
     .team-pokemons > .pokemon {
         height: 231px;
+        display: none;
     }
+    .team-pokemons > .display-pokemon {
+        display: grid;
+        margin-bottom: 15px;
+    }
+   
     .box {
-        position: absolute;
-        height: 60vh;
+        flex-grow: 1;
         width: 904px;
-        left: 20px;
     }
 }
 @media screen and (max-width: 943px) {
     .team {
         width: 447px;
-        margin: 0 auto;
     }
+    
+    .pokemon-bar {
+        display: flex;
+        justify-content: space-between !important;
+    }
+    .pokemon-bar > img, .pokemon-bar > div {
+        border: 1px solid rgb(111, 111, 111);
+        border-bottom-width: 0;
+        border-radius: 5px 5px 0 0;
+        padding: 3px 10px !important;
+        margin-right: 0 !important;
+    }
+    .pokemon-bar > img.display-bar, .pokemon-bar > div.display-bar {
+        background-color: rgb(196, 229, 249);
+        box-shadow: 3px 3px 3px rgb(255, 255, 255, 0.5) inset, -3px 0 3px rgb(255, 255, 255, 0.5) inset !important;
+    }
+
     .box {
         font-size: 12px;
         width: 445px;
@@ -194,7 +247,6 @@
         padding: 20px 10px;
         transform-origin: top left;
     }
-    .box {
-        left: 10px;
-    }
+    
+
 }

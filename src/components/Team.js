@@ -65,9 +65,10 @@ class Team extends React.Component {
     constructor(props) {
         super(props)
         this.state = {
-            ignoreScroll: false,
-            currentPokemon: null,
-            displaying: "",
+            ignoreScroll: false, listenerAdded: false,
+            currentPokemon: null, displaying: "",
+            displayPokemons: [true, true, false, false, false, false],
+            sprites: ["", "", "", "", "", ""],
             moves: [], searchMove: "", highlightedMoves: [], selectedMoves: [],
             abilities: [], searchAbility: "", highlightedAbility: "", selectedAbilities: [],
             searchItem: "", highlightedItem: "", selectedItems: [],
@@ -94,8 +95,34 @@ class Team extends React.Component {
         this.closeDisplaying = this.closeDisplaying.bind(this)
         this.resizeListenerBox = this.resizeListenerBox.bind(this)
         this.resizeListenerWindow = this.resizeListenerWindow.bind(this)
+        this.scrollListener = this.scrollListener.bind(this)
         this.ignoreScroll = this.ignoreScroll.bind(this)
-        this.scrollHandler = this.scrollHandler.bind(this)
+        this.updateSprite = this.updateSprite.bind(this)
+        this.selectDisplayPokemons = this.selectDisplayPokemons.bind(this)
+    }
+    selectDisplayPokemons(index) {
+        if (!this.state.displayPokemons[index] && document.querySelector(".team").clientWidth === 944) {
+            let displayPokemons = [false, false, false, false, false, false]
+            displayPokemons[index] = true;
+            displayPokemons[index % 2 === 0 ? index + 1 : index - 1] = true;
+            this.setState({
+                displayPokemons: displayPokemons,
+                displaying: ""
+            })
+        } else {
+            let displayPokemons = [false, false, false, false, false, false]
+            displayPokemons[index] = true;
+            this.setState({
+                displayPokemons: displayPokemons,
+                displaying: ""
+            })
+        }
+    }
+    updateSprite(index, sprite) {
+        let sprites = [...this.state.sprites]
+        sprites[index] = sprite
+        this.setState({sprites: sprites})
+        localStorage.setItem(this.props.teamName + "sprites", JSON.stringify(sprites))
     }
     ignoreScroll() {
         this.setState({ignoreScroll: true})
@@ -160,7 +187,8 @@ class Team extends React.Component {
             searchAbility: ""
         })
     }
-    importMoves(moves, highlightedMoves, index) {
+    importMoves(moves, highlightedMoves, num, scroll, index) {
+        let scrollCondition = scroll && moves.filter(move => move.name === highlightedMoves[num]).length > 0
         this.setState({
             ignoreScroll: true,
             displaying: "moves",
@@ -168,6 +196,23 @@ class Team extends React.Component {
             currentPokemon: index,
             highlightedMoves: highlightedMoves,
             searchMove: "",
+        }, () => {
+            if (scrollCondition) {
+                let moves = document.querySelectorAll(".box > .items > .selected")
+                for (let i = 0; i < 4; i++) {
+                    let moveName = moves[i].querySelector("p").textContent
+                    if (moveName === highlightedMoves[num]) {
+                        let items = document.querySelector(".box > .items")
+                        if (this.state.listenerAdded) items.removeEventListener('scroll', this.scrollListener) 
+                        items.scrollTo({
+                            top: moves[i].offsetTop - items.offsetTop,
+                            behavior: "auto"
+                        })
+                        if (this.state.listenerAdded) setTimeout(() => items.addEventListener('scroll', this.scrollListener), 100)      
+                        break;
+                    }     
+                }
+            }
         })
     }
     filterMoves(move, arr) {
@@ -220,13 +265,25 @@ class Team extends React.Component {
         }
         this.setState({ searchItem: searchItem, highlightedItem: item })
     }
-    openItems(heldItem, num) {
+    openItems(heldItem, scroll, num) {
+        let scrollCondition = scroll && changeItems.concat(heldItems).filter(item => item.name === heldItem).length > 0;
         this.setState({
             displaying: "items",
             highlightedItem: heldItem,
             currentPokemon: num,
             searchItem: "",
             ignoreScroll: true,
+        }, () => {
+            if (scrollCondition) {  
+                let selected = document.querySelector(".box > .items > .selected")
+                let items = document.querySelector(".box > .items")
+                if (this.state.listenerAdded) items.removeEventListener('scroll', this.scrollListener)
+                items.scrollTo({
+                    top: selected.offsetTop - items.offsetTop,
+                    behavior: "auto"
+                })
+                if (this.state.listenerAdded) setTimeout(() => items.addEventListener('scroll', this.scrollListener), 100)
+            }
         })
     }
     openStats(baseStats, ivs, evs, level, nature, maxStats, index) {
@@ -252,59 +309,67 @@ class Team extends React.Component {
         })
     }
     closeDisplaying() {
-        this.setState({displaying: ""})
+        this.setState({
+            displaying: "",
+            currentPokemon: null
+        })
     }
     componentDidMount() {
         window.visualViewport.addEventListener('resize', this.resizeListenerWindow)
-        if (Math.min(window.innerWidth, window.screen.width) <= 487) {
-            let team = document.querySelector(".team")
-            let ratio = Math.min(window.innerWidth, window.screen.width) / 467
-            team.style.transform = `scale(${ratio}, ${ratio})`
-            team.style.height = (ratio * 1730) + "px"
+        this.setState({sprites: JSON.parse(localStorage.getItem(this.props.teamName + "sprites"))})
+        if (document.querySelector(".team").clientWidth <= 487) {
+            this.setState({displayPokemons: [true, false, false, false, false, false, false]})
+            if (Math.min(window.innerWidth, window.screen.width) <= 487) {
+                let team = document.querySelector(".team")
+                let ratio = Math.min(window.innerWidth, window.screen.width) / 467
+                team.style.transform = `scale(${ratio}, ${ratio})`
+                team.style.maxHeight = Math.min(window.innerHeight, window.screen.height) - 40 + "px" 
+            }
         }
+        
     }
     componentDidUpdate(prevProps, prevState) {
         if ((this.state.currentPokemon !== prevState.currentPokemon || this.state.displaying !== prevState.displaying) && this.state.displaying !== "") {
             window.visualViewport.addEventListener('resize', this.resizeListenerBox)
-            let width = document.querySelector(".team").clientWidth
-            if (width === 944) {
-                document.querySelector(".box").style.top = (73 + 10 * Math.floor(this.state.currentPokemon / 2) + 273 * Math.floor(this.state.currentPokemon / 2 + 1)) + "px"
-            } else if (width < 944) {
-                document.querySelector(".box").style.top = (73 + 10 * this.state.currentPokemon + 273 * (this.state.currentPokemon + 1)) + "px"
-            }
             let items = document.querySelector(".items")  
             if (items && items.offsetWidth !== items.scrollWidth) {
                 items.classList.add("scrollbar-present")
             } else if (items) {
                 items.classList.remove("scrollbar-present")
             }
-            if (Math.min(window.innerWidth, window.screen.width) <= 487) {
-                document.querySelector(".team").style.height = ((Math.min(window.innerWidth, window.screen.width) / 467) * (1742 + document.querySelector(".box").clientHeight)) + "px"
-            }
-        }  else if (this.state.displaying !== prevState.displaying && this.state.displaying === "" && Math.min(window.innerWidth, window.screen.width) <= 487) {
-            document.querySelector(".team").style.height = ((Math.min(window.innerWidth, window.screen.width) / 467) * 1730) + "px"
         }
     }
     componentWillUnmount() {
         window.visualViewport.removeEventListener('resize', this.resizeListenerBox)
         window.visualViewport.removeEventListener('resize', this.resizeListenerWindow)
-        document.removeEventListener('scroll', this.scrollHandler)
+        document.removeEventListener('scroll', this.scrollListener)
     }
     resizeListenerBox() {
-        let items = document.querySelector(".items")
-        items.addEventListener('scroll', this.scrollHandler)
-        window.visualViewport.removeEventListener('resize', this.resizeListenerBox)
+        if (Math.min(window.innerHeight, window.screen.height) - window.visualViewport.height > 150 && Math.abs(Math.min(window.innerWidth, window.screen.width) - window.visualViewport.width) < 30) {
+            let items = document.querySelector(".items")
+            this.setState({listenerAdded: true})
+            if (items) items.addEventListener('scroll', this.scrollListener)
+            window.visualViewport.removeEventListener('resize', this.resizeListenerBox)
+        }
+        
+    }
+    scrollListener() {
+        let scrollTimeout;
+        clearTimeout(scrollTimeout);
+        scrollTimeout = setTimeout(() => {
+            if (this.state.ignoreScroll) {
+                this.setState({ignoreScroll: false})
+            } else if (!document.activeElement.classList.contains("select")) {
+                document.activeElement.blur()                
+            }
+        }, 100);
+        
     }
     resizeListenerWindow() {
-        document.addEventListener('scroll', this.scrollHandler)
-        window.visualViewport.removeEventListener('resize', this.resizeListenerWindow)
-    }
-    scrollHandler() {
-        if (this.state.ignoreScroll) {
-            this.setState({ignoreScroll: false})
-        } else {
-            document.activeElement.blur()
-        }   
+        if (Math.min(window.innerHeight, window.screen.height) - window.visualViewport.height > 150 && Math.abs(Math.min(window.innerWidth, window.screen.width) - window.visualViewport.width) < 30) {
+            document.addEventListener('scroll', this.scrollListener)
+            window.visualViewport.removeEventListener('resize', this.resizeListenerWindow)
+        }
     }
 
     render() {
@@ -312,16 +377,18 @@ class Team extends React.Component {
             return {
                 pokemons: this.props.pokemons,
                 teamName: this.props.teamName,
+                barDisplay: this.state.displayPokemons[index],
+                updateSprite: (sprite) => this.updateSprite(index, sprite),
                 index: index,
                 resetProps: () => this.resetProps(index),
                 openStats: (base, ivs, evs, level, nature, maxStats) => this.openStats(base, ivs, evs, level, nature, maxStats, index),
                 forms: this.props.forms,
                 filterMoves: this.filterMoves,
                 filterHeldItem: this.filterItems,
-                openItems: (heldItem) => this.openItems(heldItem, index),
+                openItems: (heldItem, scroll) => this.openItems(heldItem, scroll, index),
                 filterAbilities: this.filterAbilities,
                 exportAbilities: (abilities, selected) => this.importAbilities(abilities, selected, index),
-                exportMoves: (moves, highlightedMoves) => this.importMoves(moves, highlightedMoves, index),
+                exportMoves: (moves, highlightedMoves, num, scroll) => this.importMoves(moves, highlightedMoves, num, scroll, index),
                 selectedMove: this.state.selectedMoves[index],
                 selectedAbility: this.state.selectedAbilities[index],
                 selectedItem: this.state.selectedItems[index],
@@ -350,6 +417,11 @@ class Team extends React.Component {
                 <div className="taskbar">
                     <button onClick={this.props.returnHome}><FontAwesomeIcon icon={faAngleLeft} />  Home</button>
                     <input readOnly value={this.props.teamName}></input>
+                </div>
+                <div className="pokemon-bar">
+                    {this.state.sprites.map((sprite, index) => (
+                        sprite !== "" ?  <img src={sprite} className={this.state.displayPokemons[index] ? "display-bar" : ""} style={{height: 40, width: 40}} alt="" onClick={() => this.selectDisplayPokemons(index)}></img> : <div style={{height: 40, width: 40}} className={this.state.displayPokemons[index] ? "display-bar" : ""} onClick={() => this.selectDisplayPokemons(index)}></div>
+                    ))}
                 </div>
                 <div className="team-pokemons">
                     <Pokemon {...pokemonProps(0)}/>
@@ -413,13 +485,13 @@ class Team extends React.Component {
                         <div className="items">
                             {heldItems.filter(item => item.name.toLowerCase().includes(this.state.searchItem.toLowerCase())).map((item, index) => (
                                 <div key={index} onClick={() => this.selectItem(item)} className={`item ${this.state.highlightedItem === item.name ? 'selected' : ''}`}>
-                                    <p style={{ width: '30%', display: 'flex', alignItems: 'center', gap: '5px' }}><img src={item.sprite} alt="item sprite"></img>{item.name}</p>
+                                    <p style={{ width: '30%', display: 'flex', alignItems: 'center', gap: '5px' }}><img src={item.sprite} alt=""></img>{item.name}</p>
                                     <p style={{ width: '70%' }}>{item.effect}</p>
                                 </div>
                             ))}
                             {changeItems.filter(item => item.name.toLowerCase().includes(this.state.searchItem.toLowerCase())).map((item, index) => (
                                 <div key={index} onClick={() => this.selectItem(item)} className={`item ${this.state.highlightedItem === item.name ? 'selected' : ''}`}>
-                                    <p style={{ width: '30%', display: 'flex', alignItems: 'center', gap: '5px' }}><img style={{ width: 30 }} src={item.sprite} alt="item sprite"></img>{item.name}</p>
+                                    <p style={{ width: '30%', display: 'flex', alignItems: 'center', gap: '5px' }}><img style={{ width: 30 }} src={item.sprite} alt=""></img>{item.name}</p>
                                     <p style={{ width: '70%' }}>{item.effect}</p>
                                 </div>
                             ))}
