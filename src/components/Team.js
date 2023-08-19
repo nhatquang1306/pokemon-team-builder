@@ -197,16 +197,16 @@ class Team extends React.Component {
                 let moves = document.querySelectorAll(".box > .items > .selected")
                 for (let i = 0; i < 4; i++) {
                     let moveName = moves[i].querySelector("p").textContent
-                    if (moveName === highlightedMoves[num]) {                  
-                        items.scrollTo({
-                            top: moves[i].offsetTop - items.offsetTop,
-                            behavior: "smooth"
-                        })     
+                    if (moveName === highlightedMoves[num]) {                
+                        items.scrollTo({top: moves[i].offsetTop - items.offsetTop, behavior: "smooth"})     
                         break;
                     }     
                 }
             }
             if (this.state.keyboardActive) {
+                if (!scrollCondition) {
+                    items.scrollTo({top: 0, behavior: "smooth"})
+                }
                 setTimeout(() => {
                     items.addEventListener("scroll", this.scrollListener)
                 }, 500)    
@@ -276,12 +276,12 @@ class Team extends React.Component {
             items.removeEventListener("scroll", this.scrollListener)
             if (scrollCondition) {  
                 let selected = document.querySelector(".box > .items > .selected")
-                items.scrollTo({
-                    top: selected.offsetTop - items.offsetTop,
-                    behavior: "smooth"
-                })
+                items.scrollTo({top: selected.offsetTop - items.offsetTop, behavior: "smooth"})
             }
             if (this.state.keyboardActive) {
+                if (!scrollCondition) {
+                    items.scrollTo({top: 0, behavior: "smooth"})
+                }
                 setTimeout(() => {
                     items.addEventListener("scroll", this.scrollListener)
                 }, 500)    
@@ -357,6 +357,12 @@ class Team extends React.Component {
     resizeListener() {
         if (Math.min(window.innerHeight, window.screen.height) - window.visualViewport.height > 150 && Math.abs(Math.min(window.innerWidth, window.screen.width) - window.visualViewport.width) < 30) {
             this.setState({keyboardActive: true})
+            let items = document.querySelector(".items")
+            if (items) {
+                setTimeout(() => {
+                    items.addEventListener("scroll", this.scrollListener)
+                }, 300)
+            }
             window.visualViewport.removeEventListener('resize', this.resizeListener)
         }
     }
