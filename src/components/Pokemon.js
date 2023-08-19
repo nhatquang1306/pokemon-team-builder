@@ -896,8 +896,7 @@ class Pokemon extends React.Component {
             return {
                 type: "text",
                 ref: this.moveRefs[index],
-                onFocus: () => this.exportMoves(index),
-                onClick: () => this.exportMoves(index, true),
+                onFocus: () => this.exportMoves(index, true),
                 value: this.state.highlightedMoves[index],
                 onChange: (event) => this.filterMoves(event, index),
                 className: moveClasses(index)
@@ -916,7 +915,7 @@ class Pokemon extends React.Component {
                 <div className="attributes">
                     <div style={{ width: 'calc(26% - 8.8px)' }}>
                         <label>Nickname</label>
-                        <input value={this.state.nickname} onChange={this.changeNickname} type="text" id="react-select-nickname" placeholder={this.state.currentId !== null ? this.props.pokemons[this.state.currentId - 1].label : ""}></input>
+                        <input value={this.state.nickname} onChange={this.changeNickname} type="text" id="nickname" placeholder={this.state.currentId !== null ? this.props.pokemons[this.state.currentId - 1].label : ""}></input>
                     </div>
                     <div>
                         <label>Level</label>

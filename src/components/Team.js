@@ -65,8 +65,9 @@ class Team extends React.Component {
     constructor(props) {
         super(props)
         this.state = {
-            ignoreScroll: false, listenerAdded: false,
+            keyboardActive: false,
             currentPokemon: null, displaying: "",
+            activeElement: null,
             displayPokemons: [true, true, false, false, false, false],
             sprites: ["", "", "", "", "", ""],
             moves: [], searchMove: "", highlightedMoves: [], selectedMoves: [],
@@ -93,8 +94,7 @@ class Team extends React.Component {
         this.changeNature = this.changeNature.bind(this)
         this.blurStats = this.blurStats.bind(this)
         this.closeDisplaying = this.closeDisplaying.bind(this)
-        this.resizeListenerBox = this.resizeListenerBox.bind(this)
-        this.resizeListenerWindow = this.resizeListenerWindow.bind(this)
+        this.resizeListener = this.resizeListener.bind(this)
         this.scrollListener = this.scrollListener.bind(this)
         this.updateSprite = this.updateSprite.bind(this)
         this.selectDisplayPokemons = this.selectDisplayPokemons.bind(this)
@@ -162,7 +162,6 @@ class Team extends React.Component {
             })
         }
     }
-
     filterAbilities(ability) {
         let searchAbility = ability;
         if (this.state.abilities.filter(ability => ability.name === searchAbility).length > 0) {
@@ -175,39 +174,42 @@ class Team extends React.Component {
     }
     importAbilities(abilities, selectedAbility, index) {
         this.setState({
-            ignoreScroll: true,
             currentPokemon: index,
             displaying: "abilities",
             abilities: abilities,
             highlightedAbility: selectedAbility,
             searchAbility: ""
-        })
+        },)
     }
     importMoves(moves, highlightedMoves, num, scroll, index) {
         let scrollCondition = scroll && moves.filter(move => move.name === highlightedMoves[num]).length > 0
         this.setState({
-            ignoreScroll: true,
+            activeElement: document.activeElement,
             displaying: "moves",
             moves: moves,
             currentPokemon: index,
             highlightedMoves: highlightedMoves,
             searchMove: "",
         }, () => {
+            let items = document.querySelector(".box > .items")
+            items.removeEventListener("scroll", this.scrollListener)
             if (scrollCondition) {
                 let moves = document.querySelectorAll(".box > .items > .selected")
                 for (let i = 0; i < 4; i++) {
                     let moveName = moves[i].querySelector("p").textContent
-                    if (moveName === highlightedMoves[num]) {
-                        let items = document.querySelector(".box > .items")
-                        if (this.state.listenerAdded) items.removeEventListener('scroll', this.scrollListener) 
+                    if (moveName === highlightedMoves[num]) {                  
                         items.scrollTo({
                             top: moves[i].offsetTop - items.offsetTop,
-                            behavior: "auto"
-                        })
-                        if (this.state.listenerAdded) setTimeout(() => items.addEventListener('scroll', this.scrollListener), 100)      
+                            behavior: "smooth"
+                        })     
                         break;
                     }     
                 }
+            }
+            if (this.state.keyboardActive) {
+                setTimeout(() => {
+                    items.addEventListener("scroll", this.scrollListener)
+                }, 500)    
             }
         })
     }
@@ -266,19 +268,23 @@ class Team extends React.Component {
         this.setState({
             displaying: "items",
             highlightedItem: heldItem,
+            activeElement: document.activeElement,
             currentPokemon: num,
             searchItem: "",
-            ignoreScroll: true,
         }, () => {
+            let items = document.querySelector(".box > .items")
+            items.removeEventListener("scroll", this.scrollListener)
             if (scrollCondition) {  
                 let selected = document.querySelector(".box > .items > .selected")
-                let items = document.querySelector(".box > .items")
-                if (this.state.listenerAdded) items.removeEventListener('scroll', this.scrollListener)
                 items.scrollTo({
                     top: selected.offsetTop - items.offsetTop,
-                    behavior: "auto"
+                    behavior: "smooth"
                 })
-                if (this.state.listenerAdded) setTimeout(() => items.addEventListener('scroll', this.scrollListener), 100)
+            }
+            if (this.state.keyboardActive) {
+                setTimeout(() => {
+                    items.addEventListener("scroll", this.scrollListener)
+                }, 500)    
             }
         })
     }
@@ -311,7 +317,7 @@ class Team extends React.Component {
         })
     }
     componentDidMount() {
-        window.visualViewport.addEventListener('resize', this.resizeListenerWindow)
+        window.visualViewport.addEventListener('resize', this.resizeListener)
         this.setState({sprites: JSON.parse(localStorage.getItem(this.props.teamName + "sprites"))})
         if (document.querySelector(".team").clientWidth <= 487) {
             this.setState({displayPokemons: [true, false, false, false, false, false, false]})
@@ -325,12 +331,11 @@ class Team extends React.Component {
     }
     componentDidUpdate(prevProps, prevState) {
         if ((this.state.currentPokemon !== prevState.currentPokemon || this.state.displaying !== prevState.displaying) && this.state.displaying !== "") {
-            window.visualViewport.addEventListener('resize', this.resizeListenerBox)
-            let items = document.querySelector(".items")  
+            let items = document.querySelector(".items")
             if (items && items.offsetWidth !== items.scrollWidth) {
-                items.classList.add("scrollbar-present")
+                items.classList.add("scrollbar-present");
             } else if (items) {
-                items.classList.remove("scrollbar-present")
+                items.classList.remove("scrollbar-present");
             }
             if (Math.min(window.innerWidth, window.screen.width) <= 487) {
                 document.querySelector(".box").style.height = (Math.min(window.innerHeight, window.screen.height) - 412) * 467 / Math.min(window.innerWidth, window.screen.width) + "px"
@@ -342,30 +347,17 @@ class Team extends React.Component {
         window.visualViewport.removeEventListener('resize', this.resizeListenerWindow)
         document.removeEventListener('scroll', this.scrollListener)
     }
-    resizeListenerBox() {
-        if (Math.min(window.innerHeight, window.screen.height) - window.visualViewport.height > 150 && Math.abs(Math.min(window.innerWidth, window.screen.width) - window.visualViewport.width) < 30) {
-            let items = document.querySelector(".items")
-            this.setState({listenerAdded: true})
-            if (items) items.addEventListener('scroll', this.scrollListener)
-            window.visualViewport.removeEventListener('resize', this.resizeListenerBox)
-        }
-        
+    
+    scrollListener() {  
+        this.state.activeElement.blur()
+        let items = document.querySelector(".box > .items")
+        items.removeEventListener("scroll", this.scrollListener)
     }
-    scrollListener() {
-        let scrollTimeout;
-        clearTimeout(scrollTimeout);
-        scrollTimeout = setTimeout(() => {
-            if (this.state.ignoreScroll) {
-                this.setState({ignoreScroll: false})
-            } else if (!document.activeElement.id.startsWith("react-select") && document.activeElement.tagName !== "SELECT" && document.activeElement.getAttribute("type") !== "number") {
-                document.activeElement.blur()                
-            }
-        }, 50);
-    }
-    resizeListenerWindow() {
+
+    resizeListener() {
         if (Math.min(window.innerHeight, window.screen.height) - window.visualViewport.height > 150 && Math.abs(Math.min(window.innerWidth, window.screen.width) - window.visualViewport.width) < 30) {
-            document.addEventListener('scroll', this.scrollListener)
-            window.visualViewport.removeEventListener('resize', this.resizeListenerWindow)
+            this.setState({keyboardActive: true})
+            window.visualViewport.removeEventListener('resize', this.resizeListener)
         }
     }
 
