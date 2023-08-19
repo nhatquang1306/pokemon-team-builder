@@ -65,9 +65,8 @@ class Team extends React.Component {
     constructor(props) {
         super(props)
         this.state = {
-            keyboardActive: false,
+            keyboardActive: false, ignoreScroll: false,
             currentPokemon: null, displaying: "",
-            activeElement: null,
             displayPokemons: [true, true, false, false, false, false],
             sprites: ["", "", "", "", "", ""],
             moves: [], searchMove: "", highlightedMoves: [], selectedMoves: [],
@@ -76,7 +75,7 @@ class Team extends React.Component {
             statNames: ["HP", "Attack", "Defense", "Special Attack", "Special Defense", "Speed"],
             baseStats: [], maxStats: [], ivs: [], evs: [],
             nature: "", natureMultipliers: [],
-            level: null, selectedStats: [], selectedNatures: []
+            level: null, selectedStats: [], selectedNatures: [],
         }
         this.selectItem = this.selectItem.bind(this)
         this.importMoves = this.importMoves.bind(this)
@@ -184,7 +183,6 @@ class Team extends React.Component {
     importMoves(moves, highlightedMoves, num, scroll, index) {
         let scrollCondition = scroll && moves.filter(move => move.name === highlightedMoves[num]).length > 0
         this.setState({
-            activeElement: document.activeElement,
             displaying: "moves",
             moves: moves,
             currentPokemon: index,
@@ -205,7 +203,7 @@ class Team extends React.Component {
             }
             if (this.state.keyboardActive) {
                 if (!scrollCondition) {
-                    items.scrollTo({top: 0, behavior: "smooth"})
+                    items.scrollTo({top: items.scrollTop + 1, behavior: "smooth"})
                 }
                 setTimeout(() => {
                     items.addEventListener("scroll", this.scrollListener)
@@ -218,7 +216,24 @@ class Team extends React.Component {
         if (this.state.moves.filter(move => move.name === searchMove).length > 0) {
             searchMove = ""
         }
-        this.setState({ searchMove: searchMove, highlightedMoves: arr })
+        if (this.state.keyboardActive) {
+            this.setState({
+                ignoreScroll: true
+            }, () => {
+                this.setState({
+                    searchMove: searchMove,
+                    highlightedMoves: arr
+                }, () => {
+                    setTimeout(() => {
+                        this.setState({ignoreScroll: false})
+                    }, 50)
+                    
+                })
+            })
+        } else {
+            this.setState({ searchMove: searchMove, highlightedMoves: arr })
+        }
+        
     }
     selectMove(name) {
         if (this.state.highlightedMoves.filter(move => move === name).length > 0) {
@@ -261,14 +276,29 @@ class Team extends React.Component {
         if (heldItems.concat(changeItems).filter(item => item.name === searchItem).length > 0) {
             searchItem = ""
         }
-        this.setState({ searchItem: searchItem, highlightedItem: item })
+        if (this.state.keyboardActive) {
+            this.setState({
+                ignoreScroll: true
+            }, () => {
+                this.setState({
+                    searchItem: searchItem,
+                    highlightedItem: item,
+                }, () => {
+                    setTimeout(() => {
+                        this.setState({ignoreScroll: false})
+                    }, 50)
+                })
+            })
+        } else {
+            this.setState({ searchItem: searchItem, highlightedItem: item })
+        }
+        
     }
     openItems(heldItem, scroll, num) {
         let scrollCondition = scroll && changeItems.concat(heldItems).filter(item => item.name === heldItem).length > 0;
         this.setState({
             displaying: "items",
             highlightedItem: heldItem,
-            activeElement: document.activeElement,
             currentPokemon: num,
             searchItem: "",
         }, () => {
@@ -280,7 +310,7 @@ class Team extends React.Component {
             }
             if (this.state.keyboardActive) {
                 if (!scrollCondition) {
-                    items.scrollTo({top: 0, behavior: "smooth"})
+                    items.scrollTo({top: items.scrollTop + 1, behavior: "smooth"})
                 }
                 setTimeout(() => {
                     items.addEventListener("scroll", this.scrollListener)
@@ -330,7 +360,7 @@ class Team extends React.Component {
         
     }
     componentDidUpdate(prevProps, prevState) {
-        if ((this.state.currentPokemon !== prevState.currentPokemon || this.state.displaying !== prevState.displaying) && this.state.displaying !== "") {
+        if ((this.state.currentPokemon !== prevState.currentPokemon || this.state.displaying !== prevState.displaying) && this.state.displaying !== "") { 
             let items = document.querySelector(".items")
             if (items && items.offsetWidth !== items.scrollWidth) {
                 items.classList.add("scrollbar-present");
@@ -348,10 +378,12 @@ class Team extends React.Component {
         document.removeEventListener('scroll', this.scrollListener)
     }
     
-    scrollListener() {  
-        this.state.activeElement.blur()
-        let items = document.querySelector(".box > .items")
-        items.removeEventListener("scroll", this.scrollListener)
+    scrollListener() {
+        if (!this.state.ignoreScroll) {
+            document.activeElement.blur()         
+            let items = document.querySelector(".box > .items")
+            items.removeEventListener("scroll", this.scrollListener)
+        }
     }
 
     resizeListener() {
