@@ -98,6 +98,8 @@ class Team extends React.Component {
         this.updateSprite = this.updateSprite.bind(this)
         this.selectDisplayPokemons = this.selectDisplayPokemons.bind(this)
     }
+
+    // method to get displaying pokemon on mobile
     selectDisplayPokemons(index) {
         if (!this.state.displayPokemons[index] && document.querySelector(".team").clientWidth === 944) {
             let displayPokemons = [false, false, false, false, false, false]
@@ -116,17 +118,23 @@ class Team extends React.Component {
             })
         }
     }
+
+    // update sprites in local storage
     updateSprite(index, sprite) {
         let sprites = [...this.state.sprites]
         sprites[index] = sprite
         this.setState({sprites: sprites})
         localStorage.setItem(this.props.teamName + "sprites", JSON.stringify(sprites))
     }
+
+    // reset ivs and evs if the user leaves the input field blank
     blurStats(type, number, event) {
         if (event.target.value === "") {
             this.changeStat(type, number, { target: { value: type === "iv" ? 31 : 0 } })
         }
     }
+
+    // select nature and send it to child component
     changeNature(event) {
         let arr = getNatureMultipliers(event.target.value), arr2 = { ...this.state.selectedNatures }
         arr2[this.state.currentPokemon] = event.target.value
@@ -136,12 +144,15 @@ class Team extends React.Component {
             selectedNatures: arr2
         })
     }
+
+    // modify ivs and evs and send them to child component
     changeStat(type, num, event) {
         let value = parseInt(event.target.value)
         if (isNaN(value)) value = null;
         let stats = { ...this.state.selectedStats }
         if (type === "iv") {
             let ivs = [...this.state.ivs]
+            // ensure the iv values don't exceed 31
             value = value > 31 ? 31 : value
             ivs[num] = value
             stats[this.state.currentPokemon] = "iv" + num + value
@@ -151,6 +162,7 @@ class Team extends React.Component {
             })
         } else if (type === "ev") {
             let evs = [...this.state.evs]
+            // ensure the ev values don't exceed maximum
             let max = 508 - evs.slice(0, num).concat(evs.slice(num + 1)).reduce((total, value) => total + value, 0)
             value = value > Math.min(252, max) ? Math.min(252, max) : value
             evs[num] = value
@@ -161,6 +173,8 @@ class Team extends React.Component {
             })
         }
     }
+    
+    // filter abilities by name
     filterAbilities(ability) {
         let searchAbility = ability;
         if (this.state.abilities.filter(ability => ability.name === searchAbility).length > 0) {
@@ -171,6 +185,8 @@ class Team extends React.Component {
             highlightedAbility: ability
         })
     }
+
+    // import abilities from child component
     importAbilities(abilities, selectedAbility, index) {
         this.setState({
             currentPokemon: index,
@@ -180,6 +196,8 @@ class Team extends React.Component {
             searchAbility: ""
         },)
     }
+
+    // import moves from child component, scroll to a specific move according to method call
     importMoves(moves, highlightedMoves, num, scroll, index) {
         let scrollCondition = scroll && moves.filter(move => move.name === highlightedMoves[num]).length > 0
         this.setState({
@@ -201,6 +219,7 @@ class Team extends React.Component {
                     }     
                 }
             }
+            // if the user has a mobile keyboard, stabilize the scrolling
             if (this.state.keyboardActive) {
                 if (!scrollCondition) {
                     items.scrollTo({top: items.scrollTop + 1, behavior: "smooth"})
@@ -211,11 +230,14 @@ class Team extends React.Component {
             }
         })
     }
+
+    // filter moves by name
     filterMoves(move, arr) {
         let searchMove = move
         if (this.state.moves.filter(move => move.name === searchMove).length > 0) {
             searchMove = ""
         }
+        // if the user has a mobile keyboard, stabilize the scrolling
         if (this.state.keyboardActive) {
             this.setState({
                 ignoreScroll: true
@@ -235,6 +257,8 @@ class Team extends React.Component {
         }
         
     }
+    
+    // select a move and send it to the child component
     selectMove(name) {
         if (this.state.highlightedMoves.filter(move => move === name).length > 0) {
             name = "[delete]" + name;
@@ -246,6 +270,8 @@ class Team extends React.Component {
             searchMove: "",
         })
     }
+
+    // select an ability and send it to the child component
     selectAbility(name) {
         if (this.state.highlightedAbility === name) {
             name = "[delete]" + name;
@@ -258,6 +284,8 @@ class Team extends React.Component {
             searchAbility: "",
         })
     }
+
+    // select a held item and send it to the child component
     selectItem(selectedItem) {
         let item = { ...selectedItem }
         if (this.state.highlightedItem === item.name) {
@@ -271,11 +299,14 @@ class Team extends React.Component {
             searchItem: ""
         })
     }
+
+    // filter items by name
     filterItems(item) {
         let searchItem = item;
         if (heldItems.concat(changeItems).filter(item => item.name === searchItem).length > 0) {
             searchItem = ""
         }
+        // if the user has a mobile keyboard, stabilize the scrolling
         if (this.state.keyboardActive) {
             this.setState({
                 ignoreScroll: true
@@ -292,8 +323,9 @@ class Team extends React.Component {
         } else {
             this.setState({ searchItem: searchItem, highlightedItem: item })
         }
-        
     }
+
+    // open the items panel
     openItems(heldItem, scroll, num) {
         let scrollCondition = scroll && changeItems.concat(heldItems).filter(item => item.name === heldItem).length > 0;
         this.setState({
@@ -308,6 +340,7 @@ class Team extends React.Component {
                 let selected = document.querySelector(".box > .items > .selected")
                 items.scrollTo({top: selected.offsetTop - items.offsetTop, behavior: "smooth"})
             }
+            // if the user has a mobile keyboard, stabilize the scrolling
             if (this.state.keyboardActive) {
                 if (!scrollCondition) {
                     items.scrollTo({top: items.scrollTop + 1, behavior: "smooth"})
@@ -318,6 +351,8 @@ class Team extends React.Component {
             }
         })
     }
+
+    // open the stats panel
     openStats(baseStats, ivs, evs, level, nature, maxStats, index) {
         let arr = getNatureMultipliers(nature)
         this.setState({
@@ -332,6 +367,8 @@ class Team extends React.Component {
             maxStats: maxStats
         })
     }
+
+    // reset the props sent to child components
     resetProps() {
         this.setState({
             selectedAbilities: ["", "", "", "", "", ""],
@@ -340,14 +377,20 @@ class Team extends React.Component {
             selectedStats: ["", "", "", "", "", ""]
         })
     }
+
+    // close the displaying panel
     closeDisplaying() {
         this.setState({
             displaying: "",
             currentPokemon: null
         })
     }
+
+    // when loading into the page, check if user is on mobile and render the page
     componentDidMount() {
+        // add event listener to check when the mobile keyboard pops up
         window.visualViewport.addEventListener('resize', this.resizeListener)
+        // get sprites from local storage
         this.setState({sprites: JSON.parse(localStorage.getItem(this.props.teamName + "sprites"))})
         if (document.querySelector(".team").clientWidth <= 487) {
             this.setState({displayPokemons: [true, false, false, false, false, false, false]})
@@ -359,25 +402,31 @@ class Team extends React.Component {
         }
         
     }
+
     componentDidUpdate(prevProps, prevState) {
         if ((this.state.currentPokemon !== prevState.currentPokemon || this.state.displaying !== prevState.displaying) && this.state.displaying !== "") { 
             let items = document.querySelector(".items")
+            // render the displaying panel depending on whether there's a scrollbar present
             if (items && items.offsetWidth !== items.scrollWidth) {
                 items.classList.add("scrollbar-present");
             } else if (items) {
                 items.classList.remove("scrollbar-present");
             }
+            // when the user is on mobile, render the displaying panel accordingly
             if (Math.min(window.innerWidth, window.screen.width) <= 487) {
                 document.querySelector(".box").style.height = (Math.min(window.innerHeight, window.screen.height) - 412) * 467 / Math.min(window.innerWidth, window.screen.width) + "px"
             }
         }
     }
+    
+    // remove all event listeners before unmounting
     componentWillUnmount() {
         window.visualViewport.removeEventListener('resize', this.resizeListenerBox)
         window.visualViewport.removeEventListener('resize', this.resizeListenerWindow)
         document.removeEventListener('scroll', this.scrollListener)
     }
     
+    // when user scrolls on mobile, close the keyboard
     scrollListener() {
         if (!this.state.ignoreScroll) {
             document.activeElement.blur()         
@@ -385,7 +434,8 @@ class Team extends React.Component {
             items.removeEventListener("scroll", this.scrollListener)
         }
     }
-
+    
+    // this checks for when the user opens the mobile keyboard
     resizeListener() {
         if (Math.min(window.innerHeight, window.screen.height) - window.visualViewport.height > 150 && Math.abs(Math.min(window.innerWidth, window.screen.width) - window.visualViewport.width) < 30) {
             this.setState({keyboardActive: true})
@@ -400,6 +450,7 @@ class Team extends React.Component {
     }
 
     render() {
+        // props for each pokemon component
         const pokemonProps = (index) => {
             return {
                 pokemons: this.props.pokemons,
@@ -426,10 +477,12 @@ class Team extends React.Component {
                 closeDisplaying: this.closeDisplaying,
             }
         }
+        // formula to calculate stats based on iv, ev, level, and nature
         const statCalculation = (number) => {
             return Math.floor(((this.state.baseStats[number] * 2 + this.state.ivs[number] + this.state.evs[number] / 4) * this.state.level / 100 + 5) * this.state.natureMultipliers[number])
         }
         let colors = []
+        // formula to calculate stats bar color
         const points = (num) => {
             const ratio = (num === 0 ? Math.floor((this.state.baseStats[0] * 2 + this.state.ivs[0] + this.state.evs[0] / 4) * this.state.level / 100 + this.state.level + 10) : statCalculation(num)) / this.state.maxStats[num]
             if (ratio >= 0.9) colors[num] = "rgb(87, 242, 87)"

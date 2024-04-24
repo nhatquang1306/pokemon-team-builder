@@ -28,10 +28,14 @@ class TeamBuilder extends React.Component {
     this.removeMessage = this.removeMessage.bind(this)
     this.returnHome = this.returnHome.bind(this)
   }
+
+  // go back to homepage from the team page
   returnHome() {
+    // get teams from local storage
     let teams = JSON.parse(localStorage.getItem("teams"))
     if (teams) {
       let arr = []
+      // get the sprites from local storage
       teams.forEach(team => arr.push(JSON.parse(localStorage.getItem(team + "sprites"))))
       this.setState({
         teams: teams,
@@ -42,11 +46,14 @@ class TeamBuilder extends React.Component {
       })
     }
   }
+
+  // when loading into the page, load teams for local storage
   componentDidMount() {
     document.querySelector(".create").addEventListener("keydown", this.createTeamEnter)
     let teams = JSON.parse(localStorage.getItem("teams"))
     if (teams) {
       let arr = []
+      // get the sprites from local storage
       teams.forEach(team => arr.push(JSON.parse(localStorage.getItem(team + "sprites"))))
       this.setState({
         teams: teams,
@@ -54,7 +61,9 @@ class TeamBuilder extends React.Component {
       })
     }
   }
+
   componentDidUpdate(prevProps, prevState) {
+    // when the error message shows up, change the height of the teams component
     if (this.state.message !== prevState.message) {
       let teams = document.querySelector(".teams")
       if (teams && this.state.message === "") {
@@ -64,18 +73,26 @@ class TeamBuilder extends React.Component {
       }
     }
   }
+
+  // event listener so user can hit enter to create teams
   createTeamEnter(event) {
     if (event.key === "Enter") {
       this.createTeam()
     }
   }
+
+  // remove event listener before unmounting
   componentWillUnmount() {
     document.querySelector(".create").removeEventListener("keydown", this.createTeamEnter)
   }
+
+  // remove error message
   removeMessage() {
     this.setState({message: ""})
     document.removeEventListener("click", this.removeMessage)
   }
+
+  // create a team, user can't create a team with same name or create more than 10 teams
   createTeam() {
     let teams = [...this.state.teams]
     if (teams.includes(this.state.createName) && this.state.createName !== "") {
@@ -93,6 +110,7 @@ class TeamBuilder extends React.Component {
     } else {
       let name = this.state.createName
       if (name === "") {
+        // set team name to untitled if it is left blank
         for (let i = 1; i <= 10; i++) {
           if (!teams.includes("Untitled " + i)) {
             name = "Untitled " + i;
@@ -106,13 +124,18 @@ class TeamBuilder extends React.Component {
         teams: teams,
         teamPokemons: [...this.state.teamPokemons, ["", "", "", "", "", ""]]
       })
+      // update the local storage with a new team
       localStorage.setItem("teams", JSON.stringify(teams))
       localStorage.setItem(name + "sprites", JSON.stringify(["", "", "", "", "", ""]))
     }
   }
+
+  // edit the team name in the create input field
   editCreateName(event) {
     this.setState({createName: event.target.value})
   }
+
+  // go to the team page
   openTeam(event, team) {
     if (event.target.closest(".icon, .edit")) return
     this.setState({
@@ -121,6 +144,8 @@ class TeamBuilder extends React.Component {
       editingName: false
     })
   }
+
+  // edit the name of an existing team
   confirmTeamName(event) {
     if (event.key !== "Enter") return;
     let input = document.querySelector(".edit")
@@ -129,12 +154,14 @@ class TeamBuilder extends React.Component {
       this.setState({editingName: false})
       return;
     } else if (this.state.teams.includes(input.value) || input.value === "") {
+      // add a shake effect if team name is illegal
       input.classList.add("shake")
       setTimeout(() => {
         input.classList.remove("shake")
       }, 500)
       return;
     }
+    // modify local storage with new team name
     let sprites = localStorage.getItem(team + "sprites")
     localStorage.removeItem(team + "sprites")
     localStorage.setItem(input.value + "sprites", sprites)
@@ -154,6 +181,8 @@ class TeamBuilder extends React.Component {
     localStorage.setItem("teams", JSON.stringify(teams))
     input.removeEventListener("keydown", this.confirmTeamName)
   }
+
+  // enable the editing of existing team name
   enableNameEdit(index) {
     if (this.state.editingName && this.state.currentEdit === index) {
       this.confirmTeamName({key: "Enter"})
@@ -168,11 +197,14 @@ class TeamBuilder extends React.Component {
       input.addEventListener("keydown", this.confirmTeamName)
     })
   }
+
+  // delete a team, with a confirmation box
   deleteTeam(index) {
     const result = window.confirm("Are you sure you want to delete this team?")
     if (result) {
       let teams = this.state.teams
       let pokemons = this.state.teamPokemons
+      // remove the team from local storage
       localStorage.removeItem(teams[index] + "sprites")
       for (let i = 0; i <= 5; i++) {
         localStorage.removeItem(teams[index] + i)

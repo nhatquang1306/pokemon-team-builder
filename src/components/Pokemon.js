@@ -5,11 +5,14 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faAngleDown } from '@fortawesome/free-solid-svg-icons';
 import './Pokemon.css'
 
+// disable these characters in the level input
 const handleMinus = (event) => {
     if (['-', '+', 'e', 'E', '.'].includes(event.key)) {
         event.preventDefault();
     }
 }
+
+// styling of dropdown component
 const selectStyles = {
     control: provided => ({
         ...provided,
@@ -62,9 +65,13 @@ const selectStyles = {
         backgroundColor: state.data === state.selectProps.value ? "darkblue" : "white",
     })
 }
+
+// icon for the dropdown menu
 const CustomDropdownIndicator = () => {
     return <FontAwesomeIcon icon={faAngleDown} style={{ fontSize: '12px' }} />
 };
+
+// all natures and their effects
 const natures = [
     { name: "Lonely", effect: "+Atk, -Def" },
     { name: "Adamant", effect: "+Atk, -SpA" },
@@ -92,6 +99,8 @@ const natures = [
     { name: "Bashful", effect: "" },
     { name: "Quirky", effect: "" }
 ]
+
+// function to calculate stats based on natures
 const getNatureMultipliers = (name) => {
     let nature = natures.filter(nature => nature.name === name)[0]
     let arr = [1, 1, 1, 1, 1, 1]
@@ -115,6 +124,8 @@ const getNatureMultipliers = (name) => {
     }
     return arr
 }
+
+// these properties will be saved in the local storage
 const propertiesToSave = ["currentId", "nickname", "level", "gender", "shiny", "form", "heldItem", "ability", "nature", "changeBackMove"]
 
 class Pokemon extends React.Component {
@@ -160,19 +171,26 @@ class Pokemon extends React.Component {
         this.disableSelect = this.disableSelect.bind(this)
     }
 
+    // change nickname of pokemon
     changeNickname(event) {
         this.setState({ nickname: event.target.value.length > 12 ? this.state.nickname : event.target.value })
     }
+
+    // open the select items menu, scroll is a boolean value indicating whether to scroll to the held item in the menu
     openItems(scroll) {
         if (this.state.currentId !== null) {
             this.props.openItems(this.state.heldItem, scroll);
         }
     }
+
+    // dynamically filter the items menu when typing in the input box
     filterHeldItem(event) {
         if (this.state.currentId !== null && !this.state.loading) {
             let item = changeItems.filter(item => item.name === event.target.value)[0]
+            // if the previous item is tied to the pokemon form, switch back pokemon form to default 
             if (this.state.form.includes("-mega") || (["arceus", "genesect", "silvally", "zacian", "zamazenta"].includes(this.state.pokemon.name) && this.state.form !== "")) {
                 this.changeForm({ target: { value: "" }, item: { name: event.target.value } })
+            // if the new item can change pokemon form, call function to change its form, if the item can change pokemon move, call function to change its move
             } else if (item !== undefined && item.pokemon.includes(this.state.pokemon.name) && item.hasOwnProperty("changeEffect")) {
                 if (item.changeEffect.includes("form")) this.changeForm({ target: { value: item.formTarget }, item: item })
                 else if (item.changeEffect.includes("move")) {
@@ -181,16 +199,22 @@ class Pokemon extends React.Component {
                     }
                     this.setState({ heldItem: event.target.value })
                 }
+            // if the pokemon has a move tied to the previous item, revert it to original move
             } else if (this.state.changeBackMove) {
                 this.revertMove()
                 this.setState({ heldItem: event.target.value })
+            // if none of the above, update state with the new item
             } else {
                 this.setState({ heldItem: event.target.value })
             }
+            // call the props to filter the items menu
             this.props.filterHeldItem(event.target.value)
         }
     }
+    
+    // change form of pokemon
     changeForm(event) {
+        // if the pokemon already has the designated form, return
         if (this.state.form === event.target.value) {
             if (event.hasOwnProperty("item")) this.setState({ heldItem: event.item.name })
             return
@@ -200,6 +224,7 @@ class Pokemon extends React.Component {
             loading: true,
             heldItem: event.hasOwnProperty("item") ? event.item.name : this.state.heldItem
         }, () => {
+            // call the api to get form information
             if (this.state.forms.filter(form => form.name === event.target.value).length > 0) {
                 axios.get("https://pokeapi.co/api/v2/pokemon/" + event.target.value).then(response => {
                     let pokemon = { ...this.state.pokemon }
@@ -209,9 +234,11 @@ class Pokemon extends React.Component {
                     pokemon.stats = response.data.stats
                     pokemon.types = response.data.types
                     this.importAbilities(response)
+                    // if the api returns a list of moves, call the api again for moves information
                     if (response.data.moves.length > 0) {
                         this.importMoves(response)
                         pokemon.moves = response.data.moves
+                        // if the form is a mega evolution or has crowned in its name, update the pokemon with needed item
                         if ((response.data.name.includes("mega") && this.state.pokemon.name !== "rayquaza") || response.data.name.includes("crowned")) {
                             changeBackForm = true
                             let item = this.state.heldItem
@@ -225,6 +252,7 @@ class Pokemon extends React.Component {
                                 itemChanged = true
                             }
                         }
+                    // if the form is a gmax, call the api on the default form to get its moves
                     } else if (response.data.name.includes("gmax")) {
                         let id = event.target.value.endsWith('10227/') ? 10191 : event.target.value.endsWith('10228/') ? 10184 : this.state.currentId
                         axios.get('https://pokeapi.co/api/v2/pokemon/' + id).then(response2 => {
@@ -243,6 +271,7 @@ class Pokemon extends React.Component {
                     })
                 })
             } else {
+                // if reverting to default form, call api to get moves and abilities
                 if (this.state.needToReimport || event.target.value === "") {
                     axios.get('https://pokeapi.co/api/v2/pokemon/' + this.state.currentId).then(response => {
                         let pokemon = { ...this.state.pokemon }
@@ -262,6 +291,7 @@ class Pokemon extends React.Component {
                         }
                         if (event.target.value === "") {
                             pokemon.types = response.data.types;
+                            // if the pokemon is 1 of these 5, revert the special move type to normal
                             if (["arceus", "genesect", "silvally", "zacian", "zamazenta"].includes(this.state.pokemon.name)) {
                                 if (["arceus", "genesect", "silvally"].includes(this.state.pokemon.name)) this.changeMoveType("normal")
                                 if (!event.hasOwnProperty("item")) {
@@ -279,20 +309,31 @@ class Pokemon extends React.Component {
                         }, () => {
                             if (needToReimport) {
                                 this.updateStats()
-                                if (this.props.isEditing && this.props.displaying === "stats") this.openStats()
+                                if (this.props.isEditing && this.props.displaying === "stats") {
+                                    this.openStats()
+                                }
                             }
-                            if (itemChanged && this.props.isEditing && this.props.displaying === "items") this.openItems()
-                            if (!needToReimport && event.target.value !== "" && this.state.pokemon.name !== "alcremie") this.changeMinorForm(event)
+                            if (itemChanged && this.props.isEditing && this.props.displaying === "items") {
+                                this.openItems()
+                            }
+                            if (!needToReimport && event.target.value !== "" && this.state.pokemon.name !== "alcremie") {
+                                this.changeMinorForm(event)
+                            }
                         })
                     })
-                } else if (event.target.value !== "" && this.state.pokemon.name !== "alcremie") this.changeMinorForm(event)
+                } else if (event.target.value !== "" && this.state.pokemon.name !== "alcremie") {
+                    this.changeMinorForm(event)
+                }
             }
         })
     }
+
+    // this method allows for form change without importing new moves and abilities
     changeMinorForm(event) {
         let item = this.state.heldItem
         let changeBackForm = false
         let itemChanged = false;
+        // if the pokemon is 1 of these 3, give it the needed held item and change move type accordingly
         if (["arceus", "genesect", "silvally"].includes(this.state.pokemon.name)) {
             let form = event.target.value.replace(new RegExp(`${this.state.pokemon.name}-`), "")
             if (!event.hasOwnProperty("item")) {
@@ -302,6 +343,7 @@ class Pokemon extends React.Component {
             this.changeMoveType(form)
             changeBackForm = true
         }
+        // call the api to get the new type
         axios.get('https://pokeapi.co/api/v2/pokemon-form/' + event.target.value).then(response => {
             this.setState({
                 pokemon: { ...this.state.pokemon, types: response.data.types },
@@ -314,6 +356,8 @@ class Pokemon extends React.Component {
             })
         })
     }
+
+    // change the type of a specified move
     changeMoveType(form) {     
         let importedMoves = [...this.state.importedMoves]
         let moves = [...this.state.moves]
@@ -333,20 +377,27 @@ class Pokemon extends React.Component {
             case "silvally": moveName = "Multi-Attack"; break;
             default: break;
         }
+        // update the state with new move type
         importedMoves.find(move => move.name === moveName).type.name = form
         moves.find(move => move.name === moveName).type.name = form
         this.setState({
             importedMoves: importedMoves,
             moves: moves
         }, () => {
-            if (this.props.isEditing && this.props.displaying === "moves") this.exportMoves(this.state.currentMove)
+            if (this.props.isEditing && this.props.displaying === "moves") {
+                this.exportMoves(this.state.currentMove)
+            }
         })
     }
+
+    // if the input field is left blank, set level to 100
     resetLevel() {
         if (this.state.level === null && this.state.currentId !== null) {
             this.changeLevel({ target: { value: 100 } })
         }
     }
+
+    // set the shiny state of pokemon
     changeShiny(event) {
         let value = "No"
         if (event.target.value === "No") {
@@ -354,36 +405,53 @@ class Pokemon extends React.Component {
         }
         this.setState({ shiny: value })
     }
+
+    // set the gender of pokemon
     changeGender(event) {
         if (this.state.currentId !== null) {
             this.setState({ gender: event.target.value })
         }
+        // if the pokemon is 1 of these 3, change its form
         if (["meowstic", "basculegion", "indeedee"].includes(this.state.pokemon.name)) {
             this.changeForm({ target: { value: event.target.value === "Male" ? "" : this.state.pokemon.name + "-female" } })
         }
     }
+
+    // set the level of the pokemon
     changeLevel(event) {
         let level = parseInt(event.target.value)
         if (isNaN(level)) {
             this.setState({ level: null })
             return
-        } else if (level > 100) level = 100
-        else if (level < 1) level = 1
+        // only allow levels from 1 to 100    
+        } else if (level > 100) {
+            level = 100
+        } else if (level < 1) {
+            level = 1
+        }
         this.setState({ level: level }, () => {
             if (this.state.currentId !== null) {
-                if (this.props.isEditing && this.props.displaying === "stats") this.openStats()
+                if (this.props.isEditing && this.props.displaying === "stats") {
+                    this.openStats()
+                }
+                // update stats according to level
                 this.updateStats()
                 let arr = [], arr2 = []
+                // update available moves according to level
                 this.state.pokemon.moves.filter(move => move.version_group_details.filter(version => version.level_learned_at <= level).length > 0).forEach(move => arr.push(move.move.name.replace(/^./, match => match.toUpperCase()).replace(/-(.)/g, (match, letter) => " " + letter.toUpperCase())))
                 arr2 = this.state.importedMoves.filter(move => arr.includes(move.name))
                 if (this.state.moves.length !== arr2.length) {
                     this.setState({ moves: arr2 }, () => {
-                        if (this.props.isEditing && this.props.displaying === "moves") this.exportMoves(this.state.currentMove)
+                        if (this.props.isEditing && this.props.displaying === "moves") {
+                            this.exportMoves(this.state.currentMove)
+                        }
                     })
                 }
             }
         })
     }
+
+    // choose pokemon from the dropdown menu
     choosePokemon(option, state) {
         if (this.state.currentId === option.id) {
             return
@@ -393,6 +461,7 @@ class Pokemon extends React.Component {
         axios.get('https://pokeapi.co/api/v2/pokemon/' + option.id).then(response => {
             let pokemon = response.data;
             let defaultForm = "Default";
+            // set the default forms of the following pokemon
             switch (pokemon.name) {
                 case 'wormadam-plant': pokemon.name = 'wormadam'; defaultForm = 'Plant'; break;
                 case 'deoxys-normal': pokemon.name = 'deoxys'; defaultForm = 'Normal'; break;
@@ -447,6 +516,7 @@ class Pokemon extends React.Component {
                     break;
                 default: break;
             }
+            // set state with the default properties
             this.setState({
                 currentId: option.id,
                 pokemon: pokemon,
@@ -478,6 +548,7 @@ class Pokemon extends React.Component {
                 }       
             })
         })
+        // call api to get the genders for pokemon if it has a special gender rate
         axios.get('https://pokeapi.co/api/v2/pokemon-species/' + option.id).then(response => {
             let gender = "Male";
             if (response.data.gender_rate === -1) {
@@ -492,6 +563,8 @@ class Pokemon extends React.Component {
             })
         })
     }
+
+    // call the api for all possible abilities
     importAbilities(response) {
         let arr = []
         response.data.abilities.forEach(ability => {
@@ -515,18 +588,26 @@ class Pokemon extends React.Component {
             })
         })
     }
+
+    // call the api for all possible moves
     importMoves(response, changeMinorForm) {
         let arr = []
         response.data.moves.forEach(move => arr.push(axios.get(move.move.url)))
         Promise.all(arr).then(responses => {
             let importedMoves = responses.map(response => response.data);
             importedMoves.forEach(move => {
+                // modify the move names to be more accurate
                 move.name = move.name.replace(/^./, match => match.toUpperCase()).replace(/-(.)/g, (match, letter) => " " + letter.toUpperCase())
-                if (move.name === "Multi Attack") move.name = "Multi-Attack"
-                else if (move.name === "U Turn") move.name = "U-turn"
+                if (move.name === "Multi Attack") {
+                    move.name = "Multi-Attack"
+                }
+                else if (move.name === "U Turn") {
+                    move.name = "U-turn"
+                }
                 if (move.effect_entries[0]) move.effect_entries[0].short_effect = move.effect_entries[0].short_effect.replace(/\$effect_chance/, move.effect_chance)
             });
             let arr2 = [], arr3 = importedMoves
+            // filter moves based on current level
             if (this.state.level < 100 && this.state.level > 0) {
                 response.data.moves.filter(move => move.version_group_details.filter(version => version.level_learned_at <= this.state.level).length > 0).forEach(move => arr2.push(move.move.name.replace(/^./, match => match.toUpperCase()).replace(/-(.)/g, (match, letter) => " " + letter.toUpperCase())))
                 arr3 = importedMoves.filter(move => arr2.includes(move.name))
@@ -535,15 +616,20 @@ class Pokemon extends React.Component {
                 importedMoves: importedMoves,
                 moves: arr3,
             }, () => {
+                // change form of pokemon if method call requires it
                 if (changeMinorForm !== undefined) {
                     this.changeMinorForm(changeMinorForm)
+                // give it the required move if the current held item needs it
                 } else if (this.state.changeBackMove && !["pikachu", "raichu"].includes(this.state.pokemon.name)) {
                     let item = changeItems.filter(item => item.name === this.state.heldItem)[0]
                     this.replaceMove(item)
+                // special case for pikachu and raichu
                 } else if (["pikachu", "raichu"].includes(this.state.pokemon.name)) {
                     let item = changeItems.filter(item => item.name === this.state.heldItem)[0]
+                    // give it the required move if it has the right item and right form
                     if (item !== undefined && (this.state.form.includes(item.moveChangeForm) || (this.state.changeBackMove && !item.hasOwnProperty("moveChangeForm")))) {
                         this.replaceMove(item)
+                    // if it doesn't have the right move and right form, revert the changed move to defalut move
                     } else if (this.state.changeBackMove && !this.state.form.includes(item.moveChangeForm)) {
                         let highlightedMoves = [...this.state.highlightedMoves]
                         let index = highlightedMoves.findIndex(move => move === this.state.newMove)
@@ -565,23 +651,31 @@ class Pokemon extends React.Component {
             })
         })
     }
+
+    // export moves to parent component
     exportMoves(num, scroll) {
         if (this.state.currentId !== null) {
             this.props.exportMoves(this.state.moves, this.state.highlightedMoves, num, scroll)
             this.setState({ currentMove: num })
         }
     }
+
+    // export abilities to parent component
     exportAbilities() {
         if (this.state.currentId !== null) {
             this.props.exportAbilities(this.state.abilities, this.state.ability)
         }
     }
+    
+    // dynamically filter abilities when typing in the input field
     filterAbilities(event) {
         if (this.state.currentId !== null) {
             this.setState({ ability: event.target.value })
             this.props.filterAbilities(event.target.value)
         }
     }
+
+    // dynamically filter moves when typing in the input field
     filterMoves(event, num) {
         if (this.state.currentId === null) return;
         let arr = [...this.state.highlightedMoves];
@@ -589,16 +683,20 @@ class Pokemon extends React.Component {
         this.props.filterMoves(event.target.value, arr)
         this.setState({ highlightedMoves: arr })
     }
+
+    // revert the changed move to its original move, and give the pokemon a new move
     revertAndReplaceMove(item) {
         let importedMoves = [...this.state.importedMoves]
         let moves = [...this.state.moves]
         let highlightedMoves = [...this.state.highlightedMoves]
         let pokemon = { ...this.state.pokemon }
+        // revert to original move that was saved in the state
         importedMoves[importedMoves.findIndex(move => move.name === this.state.newMove)] = this.state.replacedMove
         moves[moves.findIndex(move => move.name === this.state.newMove)] = this.state.replacedMove
         let index1 = highlightedMoves.findIndex(move => move === this.state.newMove)
         if (index1 !== -1) highlightedMoves[index1] = this.state.replacedMove.name
         pokemon.moves[pokemon.moves.findIndex(move => move.move.name === this.state.newMove)].move.name = this.state.replacedMove.name.toLowerCase().replace(/\s/, "-")
+        // call the api to get new move information
         axios.get("https://pokeapi.co/api/v2/move/" + item.moveTarget).then(response => {
             let newMove = {...response.data, name: item.moveTarget.replace(/^./, match => match.toUpperCase()).replace(/-(.)/g, (match, letter) => " " + letter.toUpperCase())}
             if (highlightedMoves.findIndex(move => move === item.moveSource) !== -1) highlightedMoves[highlightedMoves.findIndex(move => move === item.moveSource)] = newMove.name
@@ -618,13 +716,15 @@ class Pokemon extends React.Component {
                 highlightedMoves: highlightedMoves
             })
         })
-        
     }
+
+    // replace move with a new move according to item description
     replaceMove(item) {
         let pokemon = { ...this.state.pokemon }
         let importedMoves = [...this.state.importedMoves]
         let moves = [...this.state.moves]
         let highlightedMoves = [...this.state.highlightedMoves]
+        // call api to get move information and update the chosen moves as needed
         axios.get("https://pokeapi.co/api/v2/move/" + item.moveTarget).then(response => {
             if (pokemon.moves.filter(move => move.move.name === item.moveSource.toLowerCase().replace(/\s/, "-")).length === 0) return;
             let newMove = { ...response.data, name: response.data.name.replace(/^./, match => match.toUpperCase()).replace(/-(.)/g, (match, letter) => " " + letter.toUpperCase()) }
@@ -647,6 +747,8 @@ class Pokemon extends React.Component {
             })
         })
     }
+
+    // revert move to the original move saved in the state, change chosen moves if needed
     revertMove() {
         let importedMoves = [...this.state.importedMoves]
         let moves = [...this.state.moves]
@@ -665,6 +767,8 @@ class Pokemon extends React.Component {
             highlightedMoves: highlightedMoves
         })
     }
+    
+    // disable the select dropdown
     disableSelect(event) {
         if (event.target.tagName === "SELECT") {
             this.setState({selectDisabled: true})
@@ -672,37 +776,46 @@ class Pokemon extends React.Component {
             this.setState({selectDisabled: false})
         }
     }
+
     componentDidMount() {
+        // disable the select dropdown on mobile devices
         if (Math.min(window.innerWidth, window.screen.width) <= 767) {
             document.addEventListener('touchstart', this.disableSelect)
         }
+        // get pokemon information from the local storage
         const state = JSON.parse(localStorage.getItem(this.props.teamName + this.props.index));
         if (state && state.currentId !== null) {
             setTimeout(() => this.choosePokemon({id: state.currentId}, state), 10)                
         }
         let pokemons = Array.from(document.querySelectorAll(".pokemon"))
         pokemons.forEach((pokemon, index) => {
+            // add event listener for enter and tab to autocomplete abilities, moves, and items
             if (index === this.props.index) {
                 pokemon.querySelector(".others > div:first-child > input").addEventListener("keydown", this.autocompleteAbility)
                 pokemon.querySelector(".others > div:last-child > input").addEventListener("keydown", this.autocompleteItem)
                 let moves = Array.from(pokemon.querySelectorAll(".moves > input"))
                 moves.forEach(move => move.addEventListener("keydown", this.autocompleteMove))
             }
-        })
-        
+        }) 
     }
+
+    // method to autocomplete ability if it matches the beginning of an ability
     autocompleteAbility(event) {
         if ((event.key === "Tab" || event.key === "Enter") && this.state.currentId !== null && this.state.ability !== "" && this.state.abilities.filter(a => a.name.toLowerCase().includes(this.state.ability.toLowerCase())).length === 1) {
             let ability = this.state.abilities.filter(a => a.name.toLowerCase().includes(this.state.ability.toLowerCase()))
             if (ability.length === 1 && ability[0] !== this.state.ability) this.setState({ability: ability[0].name})
         }
     }
+
+    // method to autocomplete item if it matches the beginning of an item
     autocompleteItem(event) {
         if ((event.key === "Tab" || event.key === "Enter") && this.state.currentId !== null && this.state.heldItem !== "") {
             let item = heldItems.concat(changeItems).filter(i => i.name.toLowerCase().includes(this.state.heldItem.toLowerCase()))
             if (item.length === 1 && item[0] !== this.state.heldItem) this.setState({heldItem: item[0].name})
         }
     }
+
+    // method to autocomplete move if it matches the beginning of a move
     autocompleteMove(event) {
         if ((event.key === "Tab" || event.key === "Enter") && this.state.currentId !== null && this.state.highlightedMoves[this.state.currentMove] !== "") {
             event.preventDefault();
@@ -715,6 +828,8 @@ class Pokemon extends React.Component {
             this.moveRefs[this.state.currentMove + 1 === 4 ? 0 : this.state.currentMove + 1].current.focus()
         }
     }
+
+    // remove event listeners before unmounting
     componentWillUnmount() {
         document.removeEventListener('touchstart', this.disableSelect)
         let pokemons = Array.from(document.querySelectorAll(".pokemon"))
@@ -727,7 +842,9 @@ class Pokemon extends React.Component {
             }
         })
     }
+
     componentDidUpdate(prevProps, prevState) {
+        // update local storage everytime the user modifies the pokemon
         if (this.state.currentId !== null) {
             let update = false
             for (let i = 0; i <= 3; i++) {
@@ -763,6 +880,7 @@ class Pokemon extends React.Component {
             }
         }
         
+        // update the moveset and move on to next move
         if (this.props.selectedMove !== prevProps.selectedMove && this.props.selectedMove !== "") {
             let arr = [...this.state.highlightedMoves]
             if (this.props.selectedMove.startsWith("[delete]")) {
@@ -778,6 +896,7 @@ class Pokemon extends React.Component {
             }
             this.props.resetProps()
         }
+        // update the ability
         if (this.props.selectedAbility !== prevProps.selectedAbility && this.props.selectedAbility !== "") {
             if (this.props.selectedAbility.startsWith("[delete]")) {
                 this.setState({ ability: "" })
@@ -786,12 +905,15 @@ class Pokemon extends React.Component {
             }
             this.props.resetProps()
         }
+        // update the held item
         if (this.props.selectedItem !== prevProps.selectedItem && this.props.selectedItem !== "") {
             let item = this.props.selectedItem
             if (!item.name.startsWith("[delete]") && item.hasOwnProperty("changeEffect") && item.pokemon.includes(this.state.pokemon.name) && this.state.form.includes(item.moveChangeForm !== undefined ? item.moveChangeForm : "")) {
+                // modify form if item requires it
                 if (item.changeEffect.includes("form")) {
                     this.changeForm({ target: { value: item.formTarget }, item: item })
                 }
+                // modify move if item requires it
                 if (item.changeEffect.includes("move")) {
                     this.setState({ heldItem: item.name }, () => {
                         if (this.state.pokemon.name === "pikachu" && this.state.changeBackMove && this.state.newMove.toLowerCase().replace(/\s/, "") !== item.moveTarget.toLowerCase().replace(/-/, "")) {
@@ -799,8 +921,10 @@ class Pokemon extends React.Component {
                         } else if (this.state.form.includes(item.moveChangeForm) || !item.hasOwnProperty("moveChangeForm")) this.replaceMove(item)
                     })
                 }
+            // if pokemon has a modified form, revert it
             } else if (this.state.changeBackForm) {
                 this.changeForm({ target: { value: "" }, item: item.name.startsWith("[delete]") ? { ...item, name: "" } : item })
+            // if pokemon has a modified move, revert it
             } else if (this.state.changeBackMove) {
                 this.setState({ heldItem: item.name.startsWith("[delete]") ? "" : item.name }, () => this.revertMove())
             } else {
@@ -808,6 +932,7 @@ class Pokemon extends React.Component {
             }
             this.props.resetProps()
         }
+        // modify stats
         if (this.props.selectedStat !== prevProps.selectedStat && this.props.selectedStat !== "") {
             let changedStat = this.props.selectedStat
             if (this.props.selectedStat.startsWith("iv")) {
@@ -825,6 +950,7 @@ class Pokemon extends React.Component {
             }
             this.props.resetProps()
         }
+        // modify nature and update stats accordingly
         if (this.props.selectedNature !== prevProps.selectedNature && this.props.selectedNature !== "") {
             this.setState({
                 nature: this.props.selectedNature,
@@ -834,6 +960,7 @@ class Pokemon extends React.Component {
             })
             this.props.resetProps()
         }
+        // modify form of pokemon, change form name to a readeable format when applicable
         if (this.state.pokemon.name !== prevState.pokemon.name || this.state.form !== prevState.form || this.state.shiny !== prevState.shiny || this.state.gender !== prevState.gender) {
             let extension = this.state.pokemon.name + (this.state.gender === "Female" && this.state.has_gender_differences ? "-f" : "") + ".png"
             if (this.state.pokemon.name === "xerneas" && this.state.form === "") extension = "xerneas-active.png"
@@ -858,17 +985,22 @@ class Pokemon extends React.Component {
                 }
                 extension += ".png"
             }
+            // update sprite of pokemon
             let sprite = "https://img.pokemondb.net/sprites/home/" + (this.state.shiny === "Yes" ? "shiny/" : "normal/") + extension
             this.setState({ sprite: sprite})
             this.props.updateSprite(sprite)
         }
     }
+
+    // open stats panel
     openStats() {
         if (this.state.currentId !== null) {
             let stats = this.state.pokemon.stats
             this.props.openStats([stats[0].base_stat, stats[1].base_stat, stats[2].base_stat, stats[3].base_stat, stats[4].base_stat, stats[5].base_stat], this.state.ivs, this.state.evs, this.state.level, this.state.nature, this.state.maxStats)
         }
     }
+
+    // update stats of pokemon and redraw the graph
     updateStats() {
         const maxStatCalculation = (num) => { return Math.floor((this.state.pokemon.stats[num].base_stat * 2 + 99) * 1.1) }
         const maxStats = [Math.floor(this.state.pokemon.stats[0].base_stat * 2 + 204), maxStatCalculation(1), maxStatCalculation(2), maxStatCalculation(3), maxStatCalculation(4), maxStatCalculation(5)]
@@ -889,9 +1021,11 @@ class Pokemon extends React.Component {
     }
 
     render() {
+        // classify move as illegal or highlighted
         const moveClasses = (index) => {
             return this.props.isEditing && this.props.displaying === "moves" && this.state.currentMove === index ? 'selected' : (!this.state.loading && this.state.highlightedMoves[index] !== '' && (this.state.moves.filter(move => move.name === this.state.highlightedMoves[index]).length === 0 || this.state.highlightedMoves.filter(move => move === this.state.highlightedMoves[index]).length >= 2) ? 'illegal' : '')
         }
+        // props for move input field
         const moveProps = (index) => {
             return {
                 type: "text",
